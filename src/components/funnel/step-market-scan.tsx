@@ -1,34 +1,38 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
-import { CheckCircle, Loader2, MapPinned, Users, Search, Target, Building, Sparkles } from 'lucide-react'
+import { CheckCircle, Loader2, MapPinned, Users, Search, Target, Building, Sparkles, AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import type { AuditResult } from '@/lib/types'
 
 interface StepMarketScanProps {
   businessData: {
     businessName: string
     city: string
   }
-  onComplete: () => void
+  onComplete: (result: AuditResult) => void
 }
 
-const discoveries = [
-  { text: 'Business profile found', icon: Building, delay: 600 },
-  { text: 'Analyzing 25 local competitors', icon: Users, delay: 1400 },
-  { text: 'Scanning 150+ keywords', icon: Search, delay: 2200 },
-  { text: 'Mapping visibility zones', icon: MapPinned, delay: 3000 },
-  { text: 'Finding ranking opportunities', icon: Target, delay: 3800 },
-  { text: 'Generating AI recommendations', icon: Sparkles, delay: 4600 },
+const discoverySteps = [
+  { text: 'Detecting business profile', icon: Building, delay: 800 },
+  { text: 'Analyzing local competitors', icon: Users, delay: 3000 },
+  { text: 'Scanning keyword opportunities', icon: Search, delay: 6000 },
+  { text: 'Mapping visibility zones', icon: MapPinned, delay: 9000 },
+  { text: 'Finding ranking gaps', icon: Target, delay: 12000 },
+  { text: 'Generating AI recommendations', icon: Sparkles, delay: 15000 },
 ]
 
 export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps) {
   const [progress, setProgress] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [currentStat, setCurrentStat] = useState(0)
-
-  const stableOnComplete = useCallback(onComplete, [onComplete])
+  const [apiDone, setApiDone] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const resultRef = useRef<AuditResult | null>(null)
+  const hasFetched = useRef(false)
 
   const liveStats = [
     { label: 'Competitors analyzed', value: 25 },
@@ -38,36 +42,95 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
   ]
 
   useEffect(() => {
+    if (hasFetched.current) return
+    hasFetched.current = true
+
+    async function runAudit() {
+      try {
+        const res = await fetch('/api/gbp-audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessName: businessData.businessName,
+            city: businessData.city,
+            industry: 'Painter',
+          }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => null)
+          throw new Error(data?.error || `Audit failed (${res.status})`)
+        }
+
+        const data: AuditResult = await res.json()
+        resultRef.current = data
+        setApiDone(true)
+      } catch (err) {
+        console.error('[StepMarketScan] API error:', err)
+        setError(err instanceof Error ? err.message : 'Something went wrong')
+      }
+    }
+
+    runAudit()
+  }, [businessData])
+
+  useEffect(() => {
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
+        if (apiDone && prev >= 98) {
           clearInterval(progressInterval)
           return 100
         }
-        return prev + 1.8
+        if (prev >= 90 && !apiDone) return 90
+        return prev + 0.5
       })
-    }, 90)
+    }, 100)
 
-    discoveries.forEach((_, index) => {
+    discoverySteps.forEach((_, index) => {
       setTimeout(() => {
         setCompletedSteps((prev) => [...prev, index])
-      }, discoveries[index].delay)
+      }, discoverySteps[index].delay)
     })
 
     const statInterval = setInterval(() => {
       setCurrentStat((prev) => (prev + 1) % liveStats.length)
     }, 1200)
 
-    const completeTimeout = setTimeout(() => {
-      stableOnComplete()
-    }, 5500)
-
     return () => {
       clearInterval(progressInterval)
       clearInterval(statInterval)
-      clearTimeout(completeTimeout)
     }
-  }, [stableOnComplete, liveStats.length])
+  }, [apiDone, liveStats.length])
+
+  useEffect(() => {
+    if (progress >= 100 && apiDone && resultRef.current) {
+      const timer = setTimeout(() => {
+        onComplete(resultRef.current!)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [progress, apiDone, onComplete])
+
+  if (error) {
+    return (
+      <div className="flex min-h-[calc(100vh-56px)] flex-col items-center justify-center px-4 py-6 sm:min-h-[calc(100vh-64px)]">
+        <div className="mx-auto w-full max-w-md text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-black text-foreground">Scan Failed</h2>
+          <p className="text-sm text-muted-foreground font-medium">{error}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="border-2 font-bold"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-10">
@@ -112,14 +175,16 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
         <div className="space-y-2 mb-6">
           <Progress value={progress} className="h-3 rounded-full" />
           <div className="flex justify-between text-sm font-bold">
-            <span className="text-muted-foreground">Scanning...</span>
+            <span className="text-muted-foreground">
+              {progress >= 90 && !apiDone ? 'Finalizing...' : 'Scanning...'}
+            </span>
             <span className="text-primary">{Math.round(progress)}%</span>
           </div>
         </div>
 
         {/* Discoveries */}
         <div className="space-y-2 mb-6">
-          {discoveries.map((discovery, index) => {
+          {discoverySteps.map((discovery, index) => {
             const isCompleted = completedSteps.includes(index)
             const Icon = discovery.icon
 

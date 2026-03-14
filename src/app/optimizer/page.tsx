@@ -8,6 +8,7 @@ import { StepMarketScan } from '@/components/funnel/step-market-scan'
 import { StepResults } from '@/components/funnel/step-results'
 import { StepChooseOption } from '@/components/funnel/step-choose-option'
 import { useRouter } from 'next/navigation'
+import type { AuditResult } from '@/lib/types'
 
 type FunnelStep = 1 | 2 | 3 | 4
 
@@ -20,13 +21,15 @@ export default function OptimizerFunnelPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<FunnelStep>(1)
   const [businessData, setBusinessData] = useState<BusinessData | null>(null)
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null)
 
   const handleStep1Complete = (data: BusinessData) => {
     setBusinessData(data)
     setCurrentStep(2)
   }
 
-  const handleStep2Complete = () => {
+  const handleStep2Complete = (result: AuditResult) => {
+    setAuditResult(result)
     setCurrentStep(3)
   }
 
@@ -45,19 +48,19 @@ export default function OptimizerFunnelPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex h-16 items-center justify-between px-5 sm:h-18 sm:px-6">
+        <div className="flex h-16 items-center justify-between px-5 sm:h-[72px] sm:px-6">
           <Logo size="md" />
           <ProgressSteps currentStep={currentStep} totalSteps={4} />
         </div>
       </header>
 
-      <main className="pb-safe">
+      <main>
         {currentStep === 1 && <StepBusinessScan onNext={handleStep1Complete} />}
         {currentStep === 2 && businessData && (
           <StepMarketScan businessData={businessData} onComplete={handleStep2Complete} />
         )}
-        {currentStep === 3 && businessData && (
-          <StepResults businessData={businessData} onNext={handleStep3Complete} />
+        {currentStep === 3 && businessData && auditResult && (
+          <StepResults businessData={businessData} auditResult={auditResult} onNext={handleStep3Complete} />
         )}
         {currentStep === 4 && (
           <StepChooseOption onSelectDIY={handleSelectDIY} onSelectAI={handleSelectAI} />

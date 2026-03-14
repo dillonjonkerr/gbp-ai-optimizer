@@ -8,6 +8,7 @@ import { StepMarketScan } from '@/components/funnel/step-market-scan'
 import { StepResults } from '@/components/funnel/step-results'
 import { StepChooseOption } from '@/components/funnel/step-choose-option'
 import { useRouter } from 'next/navigation'
+import type { AuditResult } from '@/lib/types'
 
 type FunnelStep = 1 | 2 | 3 | 4
 
@@ -20,13 +21,15 @@ export default function FunnelPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<FunnelStep>(1)
   const [businessData, setBusinessData] = useState<BusinessData | null>(null)
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null)
 
   const handleStep1Complete = (data: BusinessData) => {
     setBusinessData(data)
     setCurrentStep(2)
   }
 
-  const handleStep2Complete = () => {
+  const handleStep2Complete = (result: AuditResult) => {
+    setAuditResult(result)
     setCurrentStep(3)
   }
 
@@ -58,8 +61,8 @@ export default function FunnelPage() {
         {currentStep === 2 && businessData && (
           <StepMarketScan businessData={businessData} onComplete={handleStep2Complete} />
         )}
-        {currentStep === 3 && businessData && (
-          <StepResults businessData={businessData} onNext={handleStep3Complete} />
+        {currentStep === 3 && businessData && auditResult && (
+          <StepResults businessData={businessData} auditResult={auditResult} onNext={handleStep3Complete} />
         )}
         {currentStep === 4 && (
           <StepChooseOption onSelectDIY={handleSelectDIY} onSelectAI={handleSelectAI} />
