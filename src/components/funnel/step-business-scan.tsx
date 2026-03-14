@@ -193,19 +193,22 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </div>
         </div>
 
-        {/* Profile Circles — overlapping real reviewer faces */}
+        {/* Profile Circles — overlapping real reviewer photos */}
         <div data-id="PC" className="flex items-center justify-center gap-3 mb-6">
           <div className="flex -space-x-2.5">
-            {['bg-sky-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500'].map((bg, i) => (
-              <div
+            {[
+              'https://i.pravatar.cc/80?img=11',
+              'https://i.pravatar.cc/80?img=12',
+              'https://i.pravatar.cc/80?img=33',
+              'https://i.pravatar.cc/80?img=53',
+              'https://i.pravatar.cc/80?img=68',
+            ].map((src, i) => (
+              <img
                 key={i}
-                className={cn(
-                  'h-8 w-8 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black text-white shadow-sm',
-                  bg
-                )}
-              >
-                {['JM', 'KR', 'DL', 'AB', 'TW'][i]}
-              </div>
+                src={src}
+                alt="Reviewer"
+                className="h-8 w-8 rounded-full border-2 border-white object-cover shadow-sm"
+              />
             ))}
           </div>
           <span className="text-sm font-bold text-muted-foreground">
