@@ -6,17 +6,13 @@ import type { BusinessInfo, AuditResult } from "@/lib/types";
 import StepProgress from "@/components/audit/StepProgress";
 import StepBusinessInfo from "@/components/audit/StepBusinessInfo";
 import StepMarketScan from "@/components/audit/StepMarketScan";
-import StepComparison from "@/components/audit/StepComparison";
-import StepCTA from "@/components/audit/StepCTA";
-import StepOptimize from "@/components/audit/StepOptimize";
+import StepConvert from "@/components/audit/StepConvert";
 import AuditLoading from "@/components/audit/AuditLoading";
 
 const STEPS = [
   { label: "Business Info" },
-  { label: "Market Scan" },
-  { label: "Report" },
-  { label: "Get Started" },
-  { label: "Optimize" },
+  { label: "Gap Analysis" },
+  { label: "Fix It" },
 ];
 
 export default function AuditPage() {
@@ -59,7 +55,6 @@ export default function AuditPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30">
-      {/* Header */}
       <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-4xl items-center px-6">
           <div className="flex items-center gap-2.5">
@@ -78,12 +73,10 @@ export default function AuditPage() {
         </div>
       </header>
 
-      {/* Progress */}
       <div className="mx-auto max-w-4xl px-6 pt-8">
         <StepProgress steps={STEPS} current={step} />
       </div>
 
-      {/* Step content */}
       <main className="mx-auto max-w-4xl px-6 py-10">
         {step === 0 && !loading && (
           <StepBusinessInfo
@@ -110,24 +103,10 @@ export default function AuditPage() {
           />
         )}
         {step === 2 && auditResult && (
-          <StepComparison
-            data={auditResult.comparison}
-            recommendations={auditResult.recommendations}
-            onNext={() => setStep(3)}
-            onBack={() => setStep(1)}
-          />
-        )}
-        {step === 3 && (
-          <StepCTA
-            onNext={() => setStep(4)}
-            onBack={() => setStep(2)}
-          />
-        )}
-        {step === 4 && auditResult && (
-          <StepOptimize
+          <StepConvert
             result={auditResult}
             businessInfo={businessInfo}
-            onBack={() => setStep(3)}
+            onBack={() => setStep(1)}
           />
         )}
       </main>

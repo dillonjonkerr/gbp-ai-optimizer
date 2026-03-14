@@ -76,18 +76,17 @@ export default function StepMarketScan({
       {/* ── 6. CTA ── */}
       <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-center shadow-lg sm:p-10">
         <h2 className="text-2xl font-bold text-white">
-          Let AI Fix These Ranking Gaps
+          Ready to close these gaps?
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-300">
-          Follow a guided AI optimization flow to improve your Google Business
-          Profile, close keyword gaps, and start capturing the searches
-          you&apos;re missing.
+          Download a free DIY optimization guide or let our AI fix your profile
+          automatically.
         </p>
         <button
           onClick={onNext}
           className="mt-6 rounded-xl bg-primary-500 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-slate-900"
         >
-          Start Optimization →
+          See My Options →
         </button>
       </div>
 
