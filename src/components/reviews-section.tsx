@@ -15,6 +15,7 @@ export function ReviewsSection() {
           </p>
         </div>
         
+        {/* Elfsight Facebook Reviews Widget */}
         <div className="w-full">
           <Script 
             src="https://static.elfsight.com/platform/platform.js" 

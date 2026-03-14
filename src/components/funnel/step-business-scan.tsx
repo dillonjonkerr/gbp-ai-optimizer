@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AIBadge } from '@/components/ai-badge'
-import { Search, ArrowRight, MapPinned, Building, Star, CheckCircle2 } from 'lucide-react'
+import { FacebookTestimonialCarousel } from '@/components/facebook-testimonial-carousel'
+import { Search, ArrowRight, MapPinned, Building, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface StepBusinessScanProps {
@@ -133,41 +134,9 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </span>
         </div>
 
-        {/* Social proof */}
-        <div className="mt-5 p-4 bg-muted/50 rounded-xl">
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div 
-                  key={i} 
-                  className="h-8 w-8 rounded-full border-2 border-background bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white text-xs font-bold shadow-md"
-                >
-                  {['J', 'M', 'R', 'S', 'T'][i - 1]}
-                </div>
-              ))}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1 mb-0.5">
-                {[1,2,3,4,5].map((i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                ))}
-                <span className="text-xs font-bold text-foreground ml-1">4.9</span>
-              </div>
-              <p className="text-xs font-semibold text-muted-foreground truncate">
-                Trusted by <span className="text-foreground font-bold">10,000+</span> painting contractors
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Testimonial */}
-        <div className="mt-4 text-center">
-          <p className="text-sm italic text-muted-foreground">
-            &ldquo;Found out I was missing 40+ keywords my competitors were ranking for. Fixed it and calls doubled.&rdquo;
-          </p>
-          <p className="mt-2 text-xs font-bold text-foreground">
-            — Mike T., Pro Painters Dallas
-          </p>
+        {/* Facebook Testimonials Carousel */}
+        <div className="mt-6 -mx-4 sm:-mx-6">
+          <FacebookTestimonialCarousel />
         </div>
       </div>
     </div>
