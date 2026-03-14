@@ -97,6 +97,7 @@ export default function AuditPage() {
           <AuditLoading
             businessName={businessInfo.businessName}
             city={businessInfo.city}
+            industry={businessInfo.industry}
           />
         )}
         {step === 1 && auditResult && (
