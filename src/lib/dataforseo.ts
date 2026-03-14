@@ -1,4 +1,5 @@
-// DataForSEO Labs + SERP integration
+// DataForSEO Labs + SERP integration + AI keyword generation
+import OpenAI from "openai";
 
 const CTR_CURVE: Record<number, number> = {
   1: 0.28,
@@ -40,87 +41,125 @@ async function dfsPost<T>(endpoint: string, body: unknown[]): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// ── 1. Keyword Ideas ─────────────────────────────────────────────────────
+// ── 1. AI-Generated Local Keywords ──────────────────────────────────────
 
-type KeywordIdeasResponse = {
-  status_code: number;
-  status_message: string;
+export type KeywordSeed = { keyword: string; volume: number };
+
+export async function generateLocalKeywords(
+  openai: OpenAI,
+  category: string,
+  city: string,
+  websiteUrl?: string,
+): Promise<string[]> {
+  const websiteContext = websiteUrl
+    ? `The business website is ${websiteUrl}. Consider the types of services a ${category} typically offers.`
+    : "";
+
+  const prompt = `Generate exactly 15 high-intent local keywords that real customers would search on Google when looking for a ${category} in ${city}. ${websiteContext}
+
+Requirements:
+- Every keyword MUST include the city name or "near me"
+- Focus on commercial intent (people ready to hire)
+- Include variations: "[service] [city]", "[service] near me", "best [service] [city]", "[specific service type] [city]"
+- Include both broad terms ("painter ${city}") and specific services ("interior painting ${city}", "cabinet painter ${city}", "exterior house painting ${city}")
+- Do NOT include national/informational keywords like "painting ideas", "painting with a twist", "wall art", "diamond painting"
+- These should be keywords a local service business would want to rank for
+
+Return ONLY a JSON array of strings, no explanation. Example format:
+["painter ${city.toLowerCase()}", "house painting ${city.toLowerCase()}", "interior painter near me"]`;
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.3,
+    messages: [
+      {
+        role: "system",
+        content: "You are a local SEO expert. Return only valid JSON arrays.",
+      },
+      { role: "user", content: prompt },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content ?? "[]";
+  const cleaned = raw.replace(/```json\s*/g, "").replace(/```/g, "").trim();
+
+  try {
+    const keywords = JSON.parse(cleaned) as string[];
+    console.log("[dataforseo] AI generated keywords:", keywords);
+    return keywords.slice(0, 15);
+  } catch {
+    console.error("[dataforseo] Failed to parse AI keywords:", cleaned);
+    const cat = category.toLowerCase();
+    const loc = city.toLowerCase();
+    return [
+      `${cat} ${loc}`,
+      `best ${cat} ${loc}`,
+      `${cat} near me`,
+      `${cat} services ${loc}`,
+      `local ${cat} ${loc}`,
+      `residential ${cat} ${loc}`,
+      `commercial ${cat} ${loc}`,
+      `${cat} company ${loc}`,
+      `affordable ${cat} ${loc}`,
+      `${cat} contractors ${loc}`,
+    ];
+  }
+}
+
+// ── 2. Get Search Volumes via DataForSEO ────────────────────────────────
+
+type SearchVolumeResponse = {
   tasks: {
     status_code: number;
     status_message: string;
     result: {
-      seed_keywords: string[];
-      items: Record<string, unknown>[];
+      keyword: string;
+      search_volume: number;
     }[];
   }[];
 };
 
-export type KeywordSeed = { keyword: string; volume: number };
-
-function buildSeeds(category: string, city: string): string[] {
-  const cat = category.toLowerCase();
-  const loc = city.toLowerCase();
-  return [
-    `${cat} ${loc}`,
-    `${cat} near me`,
-    `best ${cat} ${loc}`,
-    `${cat} services ${loc}`,
-    `local ${cat} ${loc}`,
-  ];
-}
-
-export async function getKeywordIdeas(
-  category: string,
+export async function getSearchVolumes(
+  keywords: string[],
   city: string,
 ): Promise<KeywordSeed[]> {
-  const seeds = buildSeeds(category, city);
-  console.log("[dataforseo] Keyword seeds:", seeds);
+  console.log("[dataforseo] Getting search volumes for", keywords.length, "keywords");
 
-  const data = await dfsPost<KeywordIdeasResponse>(
-    "dataforseo_labs/google/keyword_ideas/live",
+  const data = await dfsPost<SearchVolumeResponse>(
+    "keywords_data/google_ads/search_volume/live",
     [
       {
-        keywords: seeds,
+        keywords,
         language_code: "en",
-        location_name: "United States",
-        include_seed_keyword: true,
-        limit: 30,
-        order_by: ["keyword_info.search_volume,desc"],
+        location_name: `${city},United States`,
       },
     ],
   );
 
   const task = data.tasks?.[0];
   if (!task || task.status_code !== 20000) {
-    console.error("[dataforseo] Keyword ideas task error:", task?.status_message);
-    throw new Error(
-      `DataForSEO keyword ideas failed: ${task?.status_message ?? "unknown error"}`,
-    );
+    console.warn("[dataforseo] Search volume task error:", task?.status_message);
+    return keywords.map((kw) => ({ keyword: kw, volume: 0 }));
   }
 
-  const items = task.result?.[0]?.items ?? [];
-  console.log("[dataforseo] Raw items:", items.length);
-  if (items.length > 0) {
-    console.log("[dataforseo] Sample item structure:", JSON.stringify(items[0], null, 2).slice(0, 500));
+  const results = task.result ?? [];
+  console.log("[dataforseo] Got volumes for", results.length, "keywords");
+
+  const volumeMap = new Map<string, number>();
+  for (const item of results) {
+    volumeMap.set(item.keyword, item.search_volume ?? 0);
   }
 
-  const parsed = items
-    .map((item) => {
-      const kwInfo = item.keyword_info as Record<string, number> | undefined;
-      return {
-        keyword: String(item.keyword ?? ""),
-        volume: kwInfo?.search_volume ?? (item.search_volume as number) ?? 0,
-      };
-    })
-    .filter((k) => k.volume > 0)
+  return keywords
+    .map((kw) => ({
+      keyword: kw,
+      volume: volumeMap.get(kw) ?? 0,
+    }))
     .sort((a, b) => b.volume - a.volume)
     .slice(0, 10);
-
-  console.log("[dataforseo] Parsed keywords with volume:", parsed.length);
-  return parsed;
 }
 
-// ── 2. SERP Rankings ─────────────────────────────────────────────────────
+// ── 3. SERP Rankings ────────────────────────────────────────────────────
 
 type SerpItem = {
   type: string;
@@ -217,7 +256,7 @@ export async function getSerpRankings(
   return { myRank, competitorRank, topCompetitor, topCompetitorDomain, topCompetitors };
 }
 
-// ── 3. Calculate missed traffic ──────────────────────────────────────────
+// ── 4. Calculate missed traffic ─────────────────────────────────────────
 
 export function calcMissedTraffic(
   volume: number,
@@ -235,7 +274,7 @@ export function calcMissedTraffic(
   return Math.max(0, potentialTraffic - currentTraffic);
 }
 
-// ── 4. Full market scan pipeline ─────────────────────────────────────────
+// ── 5. Full market scan pipeline ────────────────────────────────────────
 
 export type MarketKeyword = {
   keyword: string;
@@ -255,14 +294,20 @@ export type MarketScanResult = {
 };
 
 export async function runMarketScan(
+  openai: OpenAI,
   businessName: string,
   city: string,
   category: string,
+  websiteUrl?: string,
 ): Promise<MarketScanResult> {
-  // Step 1 — get keyword ideas
-  const seeds = await getKeywordIdeas(category, city);
+  // Step 1 — AI generates local commercial-intent keywords
+  const aiKeywords = await generateLocalKeywords(openai, category, city, websiteUrl);
 
-  // Step 2 — get SERP rankings for each keyword (sequential to avoid rate limits)
+  // Step 2 — Get real search volumes from DataForSEO
+  const seeds = await getSearchVolumes(aiKeywords, city);
+  console.log("[dataforseo] Keywords with volumes:", seeds.map((s) => `${s.keyword} (${s.volume})`));
+
+  // Step 3 — SERP rankings for each keyword (sequential to avoid rate limits)
   const allCompetitors: string[] = [];
   const keywords: MarketKeyword[] = [];
 

@@ -119,76 +119,103 @@ export default function StepMarketScan({
       </div>
 
       {/* ── Side-by-side comparison card ── */}
-      {comp && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
-          {/* Header with both business names */}
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-slate-200 bg-slate-50/50 px-6 py-5">
-            <ProfileCard
-              profile={you}
-              label="You"
-              accent="bg-primary-500"
-            />
-            <div className="text-2xl font-black text-slate-300">VS</div>
-            <ProfileCard
-              profile={comp}
-              label="Top Competitor"
-              accent="bg-slate-700"
-            />
-          </div>
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
+        {comp ? (
+          <>
+            {/* Header with both business names */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-slate-200 bg-slate-50/50 px-6 py-5">
+              <ProfileCard
+                profile={you}
+                label="You"
+                accent="bg-primary-500"
+              />
+              <div className="text-2xl font-black text-slate-300">VS</div>
+              <ProfileCard
+                profile={comp}
+                label="Top Competitor"
+                accent="bg-slate-700"
+              />
+            </div>
 
-          {/* Stats */}
-          <div className="px-6 py-2">
-            <StatRow
-              label="Google Rating"
-              you={`${you.rating.toFixed(1)} ★`}
-              them={`${comp.rating.toFixed(1)} ★`}
-              winner={compare(you.rating, comp.rating)}
-            />
-            <StatRow
-              label="Total Reviews"
-              you={you.reviewCount.toLocaleString()}
-              them={comp.reviewCount.toLocaleString()}
-              winner={compare(you.reviewCount, comp.reviewCount)}
-            />
-            <StatRow
-              label="Photos"
-              you={you.photoCount.toString()}
-              them={comp.photoCount.toString()}
-              winner={compare(you.photoCount, comp.photoCount)}
-            />
-            <StatRow
-              label="Website"
-              you={you.hasWebsite ? "Yes" : "Missing"}
-              them={comp.hasWebsite ? "Yes" : "Missing"}
-              winner={
-                you.hasWebsite === comp.hasWebsite
-                  ? "tie"
-                  : you.hasWebsite
-                    ? "you"
-                    : "them"
-              }
-            />
-            <StatRow
-              label="Phone Listed"
-              you={you.hasPhone ? "Yes" : "Missing"}
-              them={comp.hasPhone ? "Yes" : "Missing"}
-              winner={
-                you.hasPhone === comp.hasPhone
-                  ? "tie"
-                  : you.hasPhone
-                    ? "you"
-                    : "them"
-              }
-            />
-            <StatRow
-              label="Keywords Winning"
-              you={kwWins.toString()}
-              them={kwLosses.toString()}
-              winner={compare(kwWins, kwLosses)}
-            />
+            {/* Stats */}
+            <div className="px-6 py-2">
+              <StatRow
+                label="Google Rating"
+                you={`${you.rating.toFixed(1)} ★`}
+                them={`${comp.rating.toFixed(1)} ★`}
+                winner={compare(you.rating, comp.rating)}
+              />
+              <StatRow
+                label="Total Reviews"
+                you={you.reviewCount.toLocaleString()}
+                them={comp.reviewCount.toLocaleString()}
+                winner={compare(you.reviewCount, comp.reviewCount)}
+              />
+              <StatRow
+                label="Photos"
+                you={you.photoCount.toString()}
+                them={comp.photoCount.toString()}
+                winner={compare(you.photoCount, comp.photoCount)}
+              />
+              <StatRow
+                label="Website"
+                you={you.hasWebsite ? "Yes" : "Missing"}
+                them={comp.hasWebsite ? "Yes" : "Missing"}
+                winner={
+                  you.hasWebsite === comp.hasWebsite
+                    ? "tie"
+                    : you.hasWebsite
+                      ? "you"
+                      : "them"
+                }
+              />
+              <StatRow
+                label="Phone Listed"
+                you={you.hasPhone ? "Yes" : "Missing"}
+                them={comp.hasPhone ? "Yes" : "Missing"}
+                winner={
+                  you.hasPhone === comp.hasPhone
+                    ? "tie"
+                    : you.hasPhone
+                      ? "you"
+                      : "them"
+                }
+              />
+              <StatRow
+                label="Keywords Winning"
+                you={kwWins.toString()}
+                them={kwLosses.toString()}
+                winner={compare(kwWins, kwLosses)}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="px-6 py-8">
+            <div className="mb-4 flex justify-center">
+              <ProfileCard
+                profile={you}
+                label="Your Profile"
+                accent="bg-primary-500"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {[
+                { label: "Google Rating", value: `${you.rating.toFixed(1)} ★` },
+                { label: "Reviews", value: you.reviewCount.toLocaleString() },
+                { label: "Photos", value: you.photoCount.toString() },
+                { label: "Website", value: you.hasWebsite ? "Listed" : "Missing" },
+                { label: "Phone", value: you.hasPhone ? "Listed" : "Missing" },
+                { label: "Category", value: you.category },
+              ].map((s) => (
+                <div key={s.label} className="text-center">
+                  <p className="text-xs font-medium text-slate-400">{s.label}</p>
+                  <p className="mt-0.5 text-lg font-bold text-slate-800">{s.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Missed opportunity hero ── */}
       <div className="grid gap-4 sm:grid-cols-3">

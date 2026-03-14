@@ -205,36 +205,49 @@ export async function POST(request: NextRequest) {
     const profile = buildProfileSnapshot(details, city);
     console.log("[gbp-audit] Profile snapshot:", profile);
 
-    // Step 4 — AI analysis
-    const analysis = await runAIAnalysis(profile, industry);
-    console.log("[gbp-audit] AI score:", analysis.score);
+    // Step 4 — AI analysis + market scan in parallel
+    const openai = getOpenAIClient();
+    const websiteUrl = details.website ?? undefined;
 
-    // Step 5 — Real market scan via DataForSEO
-    console.log("[gbp-audit] Running DataForSEO market scan…");
-    const scanResult = await runMarketScan(businessName, city, industry);
+    const [analysis, scanResult] = await Promise.all([
+      runAIAnalysis(profile, industry),
+      runMarketScan(openai, businessName, city, industry, websiteUrl),
+    ]);
+    console.log("[gbp-audit] AI score:", analysis.score);
     console.log("[gbp-audit] Market scan complete:", scanResult.keywords.length, "keywords");
 
-    // Step 5b — Look up top competitor via Google Places for real comparison data
+    // Step 5 — Look up top competitor via Google Places for real comparison
     let competitorProfile = null;
     const primaryCompetitorName = scanResult.primaryCompetitor;
     if (primaryCompetitorName && primaryCompetitorName !== "Unknown") {
-      try {
-        console.log("[gbp-audit] Looking up competitor:", primaryCompetitorName);
-        const compPlace = await searchPlace(primaryCompetitorName, city);
-        const compDetails = await getPlaceDetails(compPlace.place_id);
-        competitorProfile = {
-          name: compDetails.name ?? primaryCompetitorName,
-          rating: compDetails.rating ?? 0,
-          reviewCount: compDetails.user_ratings_total ?? 0,
-          photoCount: compDetails.photos?.length ?? 0,
-          hasWebsite: Boolean(compDetails.website),
-          hasPhone: Boolean(compDetails.formatted_phone_number),
-          category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
-          address: compDetails.formatted_address ?? "",
-        };
-        console.log("[gbp-audit] Competitor profile:", competitorProfile.name, competitorProfile.rating);
-      } catch (err) {
-        console.warn("[gbp-audit] Could not fetch competitor profile:", err);
+      const searchVariations = [
+        primaryCompetitorName,
+        primaryCompetitorName.replace(/\s*[-|–—].*$/, ""),
+        primaryCompetitorName.split(" ").slice(0, 3).join(" "),
+      ];
+
+      for (const variation of searchVariations) {
+        try {
+          console.log("[gbp-audit] Looking up competitor:", variation);
+          const compPlace = await searchPlace(variation, city);
+          const compDetails = await getPlaceDetails(compPlace.place_id);
+          if (compPlace.name.toLowerCase() !== profile.name.toLowerCase()) {
+            competitorProfile = {
+              name: compDetails.name ?? variation,
+              rating: compDetails.rating ?? 0,
+              reviewCount: compDetails.user_ratings_total ?? 0,
+              photoCount: compDetails.photos?.length ?? 0,
+              hasWebsite: Boolean(compDetails.website),
+              hasPhone: Boolean(compDetails.formatted_phone_number),
+              category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
+              address: compDetails.formatted_address ?? "",
+            };
+            console.log("[gbp-audit] Competitor found:", competitorProfile.name, competitorProfile.rating);
+            break;
+          }
+        } catch (err) {
+          console.warn("[gbp-audit] Competitor search failed for:", variation, err);
+        }
       }
     }
 
