@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { Sparkles, CheckCircle2, AlertCircle, Globe, Phone, Image as ImageIcon, Star, MessageSquare } from "lucide-react";
 
 const INDUSTRIES = [
   "Painter",
@@ -37,16 +38,22 @@ function ScoreRing({ score }: { score: number }) {
   const offset = circumference - (score / 100) * circumference;
   const color =
     score >= 80
-      ? "text-emerald-500 stroke-emerald-500"
+      ? "text-success"
       : score >= 60
-        ? "text-amber-500 stroke-amber-500"
-        : "text-rose-500 stroke-rose-500";
+        ? "text-warning"
+        : "text-destructive";
+  const strokeColor =
+    score >= 80
+      ? "stroke-success"
+      : score >= 60
+        ? "stroke-warning"
+        : "stroke-destructive";
   const bg =
     score >= 80
-      ? "bg-emerald-50"
+      ? "bg-success/10"
       : score >= 60
-        ? "bg-amber-50"
-        : "bg-rose-50";
+        ? "bg-warning/10"
+        : "bg-destructive/10";
 
   return (
     <div className={`mx-auto flex flex-col items-center rounded-2xl p-8 ${bg}`}>
@@ -58,7 +65,7 @@ function ScoreRing({ score }: { score: number }) {
           fill="none"
           stroke="currentColor"
           strokeWidth="10"
-          className="text-slate-200"
+          className="text-muted"
         />
         <circle
           cx="70"
@@ -69,13 +76,13 @@ function ScoreRing({ score }: { score: number }) {
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className={`transition-all duration-700 ease-out ${color}`}
+          className={`transition-all duration-700 ease-out ${strokeColor}`}
         />
       </svg>
-      <p className={`-mt-[98px] mb-[50px] text-4xl font-bold tabular-nums ${color.split(" ")[0]}`}>
+      <p className={`-mt-[98px] mb-[50px] text-4xl font-bold tabular-nums ${color}`}>
         {score}
       </p>
-      <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Audit Score
       </p>
     </div>
@@ -86,18 +93,23 @@ function StatCard({
   label,
   value,
   sub,
+  icon: Icon,
 }: {
   label: string;
   value: string | number;
   sub?: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      </div>
+      <p className="mt-1 text-2xl font-bold text-foreground tabular-nums">
         {value}
         {sub && (
-          <span className="text-sm font-normal text-slate-500"> {sub}</span>
+          <span className="text-sm font-normal text-muted-foreground"> {sub}</span>
         )}
       </p>
     </div>
@@ -107,19 +119,21 @@ function StatCard({
 function BulletList({
   title,
   items,
-  dotColor = "bg-amber-500",
+  variant = "warning",
 }: {
   title: string;
   items: string[];
-  dotColor?: string;
+  variant?: "warning" | "primary";
 }) {
   if (!items.length) return null;
+  const dotColor = variant === "warning" ? "bg-warning" : "bg-primary";
+  
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-sm">
-      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+    <div className="rounded-xl border border-border bg-card p-6">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       <ul className="mt-3 space-y-2">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
             <span
               className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`}
             />
@@ -168,23 +182,29 @@ export default function GBPAuditForm() {
 
   return (
     <div className="space-y-8">
-      {/* ── Audit form ──────────────────────────────────────────────── */}
-      <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
-        <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-            Google Business Profile audit
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Enter your business details to run an AI-powered audit of your
-            profile.
-          </p>
+      {/* Audit form */}
+      <section className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Google Business Profile Audit
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Enter your business details to run an AI-powered audit.
+              </p>
+            </div>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="p-6">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <label
                 htmlFor="businessName"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Business name
               </label>
@@ -195,13 +215,13 @@ export default function GBPAuditForm() {
                 onChange={(e) => setBusinessName(e.target.value)}
                 required
                 placeholder="e.g. ABC Home Services"
-                className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
               <label
                 htmlFor="city"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-foreground"
               >
                 City
               </label>
@@ -212,13 +232,13 @@ export default function GBPAuditForm() {
                 onChange={(e) => setCity(e.target.value)}
                 required
                 placeholder="e.g. Denver"
-                className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
             <div>
               <label
                 htmlFor="industry"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Industry
               </label>
@@ -227,7 +247,7 @@ export default function GBPAuditForm() {
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
                 required
-                className="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+                className="mt-2 block w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select industry</option>
                 {INDUSTRIES.map((opt) => (
@@ -239,51 +259,56 @@ export default function GBPAuditForm() {
             </div>
           </div>
           {error && (
-            <p className="mt-4 text-sm text-rose-600" role="alert">
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4" />
               {error}
-            </p>
+            </div>
           )}
           <div className="mt-6">
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center justify-center rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background disabled:opacity-60 disabled:pointer-events-none"
             >
               {loading ? (
                 <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Analyzing profile…
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  Analyzing profile...
                 </>
               ) : (
-                "Run AI Audit"
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Run AI Audit
+                </>
               )}
             </button>
           </div>
         </form>
       </section>
 
-      {/* ── Results ─────────────────────────────────────────────────── */}
+      {/* Results */}
       {result && (
         <>
           {/* Business header */}
-          <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary-600">
+          <section className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card to-card p-6">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+              <CheckCircle2 className="h-4 w-4" />
               Audit complete
-            </p>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">
+            </div>
+            <h2 className="mt-2 text-xl font-bold text-foreground">
               {result.businessName}
             </h2>
-            <p className="mt-0.5 text-sm text-slate-500">{result.address}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{result.address}</p>
           </section>
 
           {/* Score ring + stats */}
-          <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
-            <div className="border-b border-slate-100 px-6 py-5 sm:px-8">
-              <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-                Profile overview
+          <section className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="border-b border-border px-6 py-4">
+              <h2 className="text-lg font-semibold text-foreground">
+                Profile Overview
               </h2>
             </div>
-            <div className="p-6 sm:p-8 space-y-6">
+            <div className="p-6 space-y-6">
               <ScoreRing score={result.score} />
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -291,17 +316,20 @@ export default function GBPAuditForm() {
                   label="Google Rating"
                   value={result.rating.toFixed(1)}
                   sub="/ 5"
+                  icon={Star}
                 />
-                <StatCard label="Review Count" value={result.reviewCount} />
-                <StatCard label="Photo Count" value={result.photoCount} />
+                <StatCard label="Review Count" value={result.reviewCount} icon={MessageSquare} />
+                <StatCard label="Photo Count" value={result.photoCount} icon={ImageIcon} />
                 <StatCard label="Category" value={result.category} />
                 <StatCard
                   label="Website"
                   value={result.hasWebsite ? "Listed" : "Missing"}
+                  icon={Globe}
                 />
                 <StatCard
                   label="Phone Number"
                   value={result.hasPhone ? "Listed" : "Missing"}
+                  icon={Phone}
                 />
               </div>
             </div>
@@ -309,11 +337,11 @@ export default function GBPAuditForm() {
 
           {/* Competitor benchmark */}
           {result.competitorBenchmark && (
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-8">
-              <h3 className="text-sm font-semibold text-slate-700">
-                Competitor benchmark
+            <section className="rounded-xl border border-border bg-card p-6">
+              <h3 className="text-sm font-semibold text-foreground">
+                Competitor Benchmark
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {result.competitorBenchmark}
               </p>
             </section>
@@ -324,26 +352,26 @@ export default function GBPAuditForm() {
             <BulletList
               title="Missing Optimization Items"
               items={result.missingItems}
-              dotColor="bg-amber-500"
+              variant="warning"
             />
             <BulletList
               title="Recommendations"
               items={result.recommendations}
-              dotColor="bg-primary-500"
+              variant="primary"
             />
           </div>
 
           {/* Suggested posts */}
           {result.suggestedPosts.length > 0 && (
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-8">
-              <h3 className="text-sm font-semibold text-slate-700">
-                Suggested GBP posts
+            <section className="rounded-xl border border-border bg-card p-6">
+              <h3 className="text-sm font-semibold text-foreground">
+                Suggested GBP Posts
               </h3>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 {result.suggestedPosts.map((post, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 text-sm leading-relaxed text-slate-700"
+                    className="rounded-lg border border-border bg-muted/50 p-4 text-sm leading-relaxed text-muted-foreground"
                   >
                     {post}
                   </div>
@@ -354,20 +382,20 @@ export default function GBPAuditForm() {
 
           {/* Suggested Q&A */}
           {result.suggestedQA.length > 0 && (
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-8">
-              <h3 className="text-sm font-semibold text-slate-700">
+            <section className="rounded-xl border border-border bg-card p-6">
+              <h3 className="text-sm font-semibold text-foreground">
                 Suggested Q&amp;A
               </h3>
               <div className="mt-4 space-y-4">
                 {result.suggestedQA.map((qa, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4"
+                    className="rounded-lg border border-border bg-muted/50 p-4"
                   >
-                    <p className="text-sm font-semibold text-slate-800">
+                    <p className="text-sm font-medium text-foreground">
                       Q: {qa.question}
                     </p>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                       A: {qa.answer}
                     </p>
                   </div>
