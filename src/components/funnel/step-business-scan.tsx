@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AIBadge } from '@/components/ai-badge'
-import { FacebookTestimonialCarousel } from '@/components/facebook-testimonial-carousel'
+import { GoogleReviewsWidget } from '@/components/google-reviews-widget'
 import { Search, ArrowRight, MapPinned, Building, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -134,9 +134,9 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </span>
         </div>
 
-        {/* Facebook Testimonials Carousel */}
+        {/* Google Reviews - Real automated reviews from homeowners */}
         <div className="mt-6 -mx-4 sm:-mx-6">
-          <FacebookTestimonialCarousel />
+          <GoogleReviewsWidget variant="compact" />
         </div>
       </div>
     </div>
