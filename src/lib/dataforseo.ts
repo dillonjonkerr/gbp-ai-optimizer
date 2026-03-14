@@ -20,15 +20,19 @@ const STATE_ABBREV: Record<string, string> = {
   VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
 };
 
-function normalizeLocation(city: string): string {
+function normalizeLocation(city: string): { city: string; state: string; full: string } {
   const parts = city.split(",").map((s) => s.trim());
   if (parts.length >= 2) {
-    const cityName = parts[0];
+    const cityName = parts[0]!;
     const stateRaw = parts[1]!.toUpperCase();
-    const stateFull = STATE_ABBREV[stateRaw] ?? parts[1];
-    return `${cityName},${stateFull},United States`;
+    const stateFull = STATE_ABBREV[stateRaw] ?? parts[1]!;
+    return {
+      city: cityName,
+      state: stateFull,
+      full: `${cityName},${stateFull},United States`,
+    };
   }
-  return `${city},United States`;
+  return { city: city, state: "", full: `${city},United States` };
 }
 
 // ── DataForSEO auth & fetch ──────────────────────────────────────────────
@@ -131,65 +135,64 @@ type SearchVolumeResponse = {
 
 type KeywordSeed = { keyword: string; volume: number };
 
-export async function getSearchVolumes(
+async function fetchVolumes(
   keywords: string[],
-  city: string,
-): Promise<KeywordSeed[]> {
-  console.log("[dataforseo] Getting search volumes for", keywords.length, "keywords");
-
-  // Use country-level location — keywords already contain city names
-  // so volumes are effectively local-intent even at US level
+  locationName: string,
+): Promise<Map<string, number>> {
   const data = await dfsPost<SearchVolumeResponse>(
     "keywords_data/google_ads/search_volume/live",
-    [
-      {
-        keywords,
-        language_code: "en",
-        location_code: 2840,
-      },
-    ],
+    [{ keywords, language_code: "en", location_name: locationName }],
   );
 
   const task = data.tasks?.[0];
   if (!task || task.status_code !== 20000) {
-    console.warn("[dataforseo] Search volume task error:", task?.status_message);
-    // Try again with normalized location name as fallback
-    try {
-      const fallback = await dfsPost<SearchVolumeResponse>(
-        "keywords_data/google_ads/search_volume/live",
-        [{ keywords, language_code: "en", location_name: normalizeLocation(city) }],
-      );
-      const fb = fallback.tasks?.[0];
-      if (fb?.status_code === 20000 && fb.result?.length) {
-        return fb.result
-          .filter((r) => (r.search_volume ?? 0) > 0)
-          .map((r) => ({ keyword: r.keyword, volume: r.search_volume ?? 0 }))
-          .sort((a, b) => b.volume - a.volume)
-          .slice(0, 15);
-      }
-    } catch {
-      // continue with empty
+    console.warn("[dataforseo] Volume task error for", locationName, ":", task?.status_message);
+    return new Map();
+  }
+
+  const map = new Map<string, number>();
+  for (const item of task.result ?? []) {
+    map.set(item.keyword, item.search_volume ?? 0);
+  }
+  return map;
+}
+
+export async function getSearchVolumes(
+  keywords: string[],
+  city: string,
+): Promise<KeywordSeed[]> {
+  console.log("[dataforseo] Getting LOCAL search volumes for", keywords.length, "keywords");
+
+  const loc = normalizeLocation(city);
+
+  // Try city-level first (e.g. "Sandy,Utah,United States")
+  let volumeMap = await fetchVolumes(keywords, loc.full);
+  const cityHits = Array.from(volumeMap.values()).filter((v) => v > 0).length;
+  console.log("[dataforseo] City-level volumes (", loc.full, "):", cityHits, "of", keywords.length, "with data");
+
+  // If city-level returned mostly zeros, try state-level
+  if (cityHits < keywords.length / 3 && loc.state) {
+    console.log("[dataforseo] Falling back to state-level:", `${loc.state},United States`);
+    const stateMap = await fetchVolumes(keywords, `${loc.state},United States`);
+    const stateHits = Array.from(stateMap.values()).filter((v) => v > 0).length;
+    console.log("[dataforseo] State-level volumes:", stateHits, "with data");
+
+    if (stateHits > cityHits) {
+      volumeMap = stateMap;
     }
-    return keywords.map((kw) => ({ keyword: kw, volume: 0 }));
   }
 
-  const results = task.result ?? [];
-  console.log("[dataforseo] Raw volume results:", results.length);
-
-  const volumeMap = new Map<string, number>();
-  for (const item of results) {
-    volumeMap.set(item.keyword, item.search_volume ?? 0);
-  }
-
-  // Only keep keywords with real volume, sorted by volume
   const withVolume = keywords
     .map((kw) => ({ keyword: kw, volume: volumeMap.get(kw) ?? 0 }))
     .filter((s) => s.volume > 0)
     .sort((a, b) => b.volume - a.volume)
     .slice(0, 15);
 
-  console.log("[dataforseo] Keywords with volume > 0:", withVolume.length,
-    withVolume.map((s) => `${s.keyword} (${s.volume})`).join(", "));
+  console.log(
+    "[dataforseo] Final keywords with volume:",
+    withVolume.length,
+    withVolume.map((s) => `${s.keyword} (${s.volume})`).join(", "),
+  );
 
   return withVolume;
 }
@@ -231,11 +234,11 @@ async function getKeywordSerp(
   businessName: string,
   businessDomain?: string,
 ): Promise<KeywordSerpResult> {
-  const location = normalizeLocation(city);
+  const loc = normalizeLocation(city);
 
   const data = await dfsPost<SerpResponse>(
     "serp/google/organic/live/advanced",
-    [{ keyword, location_name: location, language_code: "en", depth: 20 }],
+    [{ keyword, location_name: loc.full, language_code: "en", depth: 20 }],
   );
 
   const task = data.tasks?.[0];
