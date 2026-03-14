@@ -54,20 +54,20 @@ export default function AuditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30">
-      <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen bg-[#09090b] text-[#f4f4f5]">
+      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#09090b]/95 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-4xl items-center px-6">
           <div className="flex items-center gap-2.5">
             <Image
               src="/brand/icon.png"
               alt="Paint & Profits"
-              width={44}
-              height={44}
-              className="h-11 w-11"
+              width={40}
+              height={40}
+              className="h-10 w-10"
               priority
             />
-            <span className="text-lg font-bold tracking-tight text-slate-900">
-              Paint <span className="text-primary-500">&amp;</span> Profits
+            <span className="text-lg font-bold tracking-tight">
+              Paint <span className="text-[#29b6f6]">&amp;</span> Profits
             </span>
           </div>
         </div>

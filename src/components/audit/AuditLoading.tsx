@@ -266,7 +266,7 @@ export default function AuditLoading({
         {/* 3. Discoveries Feed */}
         {discoveries.length > 0 && (
           <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <h3 className="mb-3 text-[10px] font-extrabold uppercase tracking-[2px] text-white/25">
               Discoveries
             </h3>
             <ScanDiscoveriesFeed

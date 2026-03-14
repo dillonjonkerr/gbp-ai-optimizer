@@ -21,46 +21,43 @@ export default function StepMarketScan({
 }) {
   return (
     <div className="space-y-10">
-      {/* ── 1. Result Header ── */}
+      {/* Result Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50/60 px-3 py-1 text-xs font-semibold text-primary-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#29b6f6]/20 bg-[#29b6f6]/[0.06] px-3 py-1 text-xs font-extrabold uppercase tracking-[2px] text-[#29b6f6]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#29b6f6]" />
           AI Market Scan Complete
         </div>
 
-        <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">
           Your competitors are capturing
           <br />
-          <span className="text-rose-600">searches you&apos;re missing</span>
+          <span className="text-rose-400">searches you&apos;re missing</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-500">
+        <p className="mx-auto mt-4 max-w-lg text-base font-medium leading-relaxed text-white/40">
           We analyzed {data.totalKeywordsAnalyzed} local keywords in{" "}
-          <span className="font-medium text-slate-700">{city}</span> and found{" "}
-          <span className="font-semibold text-rose-600">
+          <span className="font-bold text-white/60">{city}</span> and found{" "}
+          <span className="font-bold text-rose-400">
             {data.keywords.length} keyword gaps
           </span>{" "}
           where{" "}
-          <span className="font-medium text-slate-700">
+          <span className="font-bold text-white/60">
             {data.primaryCompetitorName}
           </span>{" "}
           is outranking{" "}
-          <span className="font-medium text-slate-700">{businessName}</span>.
+          <span className="font-bold text-white/60">{businessName}</span>.
         </p>
       </div>
 
-      {/* ── 2. Opportunity Cards ── */}
       <OpportunityCards data={data} />
 
-      {/* ── 3. Competitor Comparison ── */}
       <section>
-        <h2 className="mb-4 text-lg font-bold text-slate-900">
+        <h2 className="mb-4 text-[10px] font-extrabold uppercase tracking-[2px] text-white/30">
           Profile Comparison
         </h2>
         <CompetitorComparison data={data} />
       </section>
 
-      {/* ── 4. Keyword Gap Table ── */}
       <section>
         <KeywordGapTable
           keywords={data.keywords}
@@ -68,30 +65,28 @@ export default function StepMarketScan({
         />
       </section>
 
-      {/* ── 5. AI Insight Panel ── */}
       <section>
         <AIInsightPanel comparison={comparison} data={data} />
       </section>
 
-      {/* ── 6. CTA ── */}
-      <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-center shadow-lg sm:p-10">
-        <h2 className="text-2xl font-bold text-white">
+      {/* CTA */}
+      <div className="rounded-2xl border border-white/[0.07] bg-gradient-to-r from-[#16161a] to-[#1a1a2e] p-8 text-center sm:p-10">
+        <h2 className="text-2xl font-black text-white">
           Ready to close these gaps?
         </h2>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-300">
+        <p className="mx-auto mt-3 max-w-md text-sm font-medium leading-relaxed text-white/35">
           Download a free DIY optimization guide or let our AI fix your profile
           automatically.
         </p>
         <button
           onClick={onNext}
-          className="mt-6 rounded-xl bg-primary-500 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-slate-900"
+          className="mt-6 rounded-full bg-[#29b6f6] px-8 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_6px_24px_rgba(41,182,246,0.4)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_32px_rgba(41,182,246,0.55)]"
         >
           See My Options →
         </button>
       </div>
 
-      {/* ── Source note ── */}
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs font-semibold text-white/15">
         Based on Google Business Profile data and local keyword analytics for{" "}
         {city}. Rankings checked across {data.totalKeywordsAnalyzed} local
         keywords via live SERP data.

@@ -20,11 +20,11 @@ function MetricRow({
   result: "win" | "lose" | "tie";
 }) {
   return (
-    <div className="grid grid-cols-[1fr_2fr_1fr] items-center border-b border-slate-100 py-3 last:border-0">
+    <div className="grid grid-cols-[1fr_2fr_1fr] items-center border-b border-white/[0.05] py-3.5 last:border-0">
       <div className="text-right pr-4">
         <span
           className={`text-sm font-bold tabular-nums ${
-            result === "win" ? "text-emerald-600" : result === "lose" ? "text-rose-500" : "text-slate-700"
+            result === "win" ? "text-[#22c55e]" : result === "lose" ? "text-rose-400" : "text-white/60"
           }`}
         >
           {you}
@@ -32,28 +32,22 @@ function MetricRow({
       </div>
       <div className="flex items-center justify-center gap-2">
         {result === "win" && (
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
         )}
         {result === "lose" && (
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
         )}
         {result === "tie" && (
-          <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
         )}
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-400">
+        <span className="text-[10px] font-extrabold uppercase tracking-[2px] text-white/25">
           {label}
         </span>
-        {result === "win" && (
-          <span className="h-1.5 w-1.5 rounded-full bg-transparent" />
-        )}
-        {result === "lose" && (
-          <span className="h-1.5 w-1.5 rounded-full bg-transparent" />
-        )}
       </div>
       <div className="pl-4">
         <span
           className={`text-sm font-bold tabular-nums ${
-            result === "lose" ? "text-emerald-600" : result === "win" ? "text-rose-500" : "text-slate-700"
+            result === "lose" ? "text-[#22c55e]" : result === "win" ? "text-rose-400" : "text-white/60"
           }`}
         >
           {them}
@@ -76,16 +70,16 @@ function ProfileHeader({
     <div className="flex flex-col items-center gap-2">
       <div
         className={`flex h-14 w-14 items-center justify-center rounded-2xl text-xl font-bold text-white ${
-          isYou ? "bg-primary-500" : "bg-slate-700"
+          isYou ? "bg-[#29b6f6]" : "bg-white/10"
         }`}
       >
         {profile.name.charAt(0).toUpperCase()}
       </div>
       <div className="text-center">
-        <p className="text-sm font-bold text-slate-900 leading-tight">
+        <p className="text-sm font-bold text-white leading-tight">
           {profile.name}
         </p>
-        <p className="mt-0.5 text-[11px] text-slate-400">{label}</p>
+        <p className="mt-0.5 text-[11px] font-semibold text-white/25">{label}</p>
       </div>
     </div>
   );
@@ -101,8 +95,8 @@ export default function CompetitorComparison({
 
   if (!comp) {
     return (
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm">
-        <p className="text-center text-sm text-slate-500">
+      <div className="rounded-2xl border border-white/[0.07] bg-[#16161a] p-8">
+        <p className="text-center text-sm text-white/40">
           No competitor profile available for comparison.
         </p>
       </div>
@@ -117,19 +111,17 @@ export default function CompetitorComparison({
   ).length;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      {/* Header */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 border-b border-slate-100 bg-slate-50/40 px-8 py-6">
+    <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#16161a]">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-6 border-b border-white/[0.05] bg-white/[0.02] px-8 py-6">
         <ProfileHeader profile={you} label="Your Business" isYou />
         <div className="flex flex-col items-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-slate-300">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-white/15">
             vs
           </span>
         </div>
         <ProfileHeader profile={comp} label="Top Competitor" isYou={false} />
       </div>
 
-      {/* Metrics */}
       <div className="px-8 py-3">
         <MetricRow
           label="Google Rating"

@@ -33,11 +33,11 @@ export default function BusinessProfileCard({
 
   if (!visible) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white">
-        <div className="h-48 animate-pulse bg-slate-100" />
+      <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#16161a]">
+        <div className="h-48 animate-pulse bg-white/[0.03]" />
         <div className="space-y-3 p-5">
-          <div className="h-5 w-3/4 animate-pulse rounded bg-slate-100" />
-          <div className="h-4 w-1/2 animate-pulse rounded bg-slate-100" />
+          <div className="h-5 w-3/4 animate-pulse rounded bg-white/[0.05]" />
+          <div className="h-4 w-1/2 animate-pulse rounded bg-white/[0.05]" />
         </div>
       </div>
     );
@@ -45,22 +45,21 @@ export default function BusinessProfileCard({
 
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm"
+      className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#16161a]"
       style={{ animation: "fadeUp 0.6s ease-out" }}
     >
-      {/* Photo */}
       {photoUrls.length > 0 && (
-        <div className="relative h-48 overflow-hidden bg-slate-900">
+        <div className="relative h-48 overflow-hidden bg-black">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photoUrls[photoIdx]}
             alt={name}
             className="h-full w-full object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#16161a] via-transparent to-transparent" />
 
           <div className="absolute left-5 top-4">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#22c55e]/90 px-3 py-1 text-xs font-black text-white backdrop-blur-sm">
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
@@ -74,7 +73,7 @@ export default function BusinessProfileCard({
                 <span
                   key={i}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === photoIdx ? "w-4 bg-white" : "w-1.5 bg-white/40"
+                    i === photoIdx ? "w-4 bg-white" : "w-1.5 bg-white/30"
                   }`}
                 />
               ))}
@@ -83,16 +82,15 @@ export default function BusinessProfileCard({
         </div>
       )}
 
-      {/* Info */}
       <div className="p-5">
-        <h2 className="text-xl font-bold text-slate-900">{name}</h2>
-        <p className="mt-1 text-sm text-slate-500">{address}</p>
+        <h2 className="text-xl font-black text-white">{name}</h2>
+        <p className="mt-1 text-sm font-medium text-white/30">{address}</p>
 
         <div className="mt-4 flex items-center gap-6">
           <Stat label="Rating" value={rating.toFixed(1)} icon="⭐" />
-          <div className="h-8 w-px bg-slate-100" />
+          <div className="h-8 w-px bg-white/[0.06]" />
           <Stat label="Reviews" value={reviewCount.toLocaleString()} icon="💬" />
-          <div className="h-8 w-px bg-slate-100" />
+          <div className="h-8 w-px bg-white/[0.06]" />
           <Stat label="Photos" value={String(photoCount)} icon="📷" />
         </div>
       </div>
@@ -112,8 +110,8 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: stri
     <div className="flex items-center gap-2">
       <span className="text-lg">{icon}</span>
       <div>
-        <p className="text-lg font-bold leading-tight text-slate-900">{value}</p>
-        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-lg font-black leading-tight text-white">{value}</p>
+        <p className="text-xs font-semibold text-white/25">{label}</p>
       </div>
     </div>
   );

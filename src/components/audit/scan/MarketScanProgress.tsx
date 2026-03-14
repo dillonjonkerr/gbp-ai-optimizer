@@ -30,39 +30,37 @@ export default function MarketScanProgress({
 
   return (
     <div className="text-center">
-      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
+      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#29b6f6]/20 bg-[#29b6f6]/[0.06] px-4 py-1.5 text-xs font-extrabold uppercase tracking-[2px] text-[#29b6f6]">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#29b6f6] opacity-60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#29b6f6]" />
         </span>
-        AI Market Scan in Progress
+        Scanning
       </div>
 
-      <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+      <h1 className="mt-6 text-3xl font-black tracking-tight sm:text-4xl">
         Scanning your local market
       </h1>
 
-      <p className="mx-auto mt-3 max-w-md text-base text-slate-500">
+      <p className="mx-auto mt-3 max-w-md text-base font-medium text-white/40">
         Analyzing competitors, reviews, and ranking signals for{" "}
-        <span className="font-medium text-slate-700">{businessName}</span> in{" "}
-        <span className="font-medium text-slate-700">{city}</span>
+        <span className="font-bold text-white/60">{businessName}</span> in{" "}
+        <span className="font-bold text-white/60">{city}</span>
       </p>
 
-      {/* Progress bar */}
       <div className="mx-auto mt-8 max-w-sm">
-        <div className="relative h-1.5 overflow-hidden rounded-full bg-slate-100">
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-[1500ms] ease-out"
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#29b6f6] to-[#0ea5e9] transition-all duration-[1500ms] ease-out"
             style={{ width: `${progress}%` }}
           />
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-400/60 to-transparent opacity-80 blur-sm transition-all duration-[1500ms] ease-out"
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#29b6f6]/50 to-transparent opacity-80 blur-sm transition-all duration-[1500ms] ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
-      {/* Step checklist — only show completed + current active step */}
       <div className="mx-auto mt-6 flex max-w-xs flex-col items-start gap-2">
         {STEPS.slice(0, completedSteps + 1).map((label, i) => {
           const done = i < completedSteps;
@@ -73,20 +71,20 @@ export default function MarketScanProgress({
               style={{ animation: "stepIn 0.4s ease-out" }}
             >
               {done ? (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22c55e] text-white">
                   <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </span>
               ) : (
                 <span className="relative flex h-5 w-5 items-center justify-center">
-                  <span className="absolute h-5 w-5 animate-ping rounded-full bg-primary-200" />
-                  <span className="relative h-2.5 w-2.5 rounded-full bg-primary-500" />
+                  <span className="absolute h-5 w-5 animate-ping rounded-full bg-[#29b6f6]/30" />
+                  <span className="relative h-2.5 w-2.5 rounded-full bg-[#29b6f6]" />
                 </span>
               )}
               <span
-                className={`text-sm ${
-                  done ? "font-medium text-slate-700" : "font-medium text-primary-600"
+                className={`text-sm font-bold ${
+                  done ? "text-white/50" : "text-[#29b6f6]"
                 }`}
               >
                 {label}

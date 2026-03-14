@@ -93,7 +93,7 @@ export default function PlaceAutocomplete({
 
   return (
     <div ref={containerRef} className="relative">
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-bold text-white/60">
         {label}
       </label>
       <input
@@ -110,13 +110,13 @@ export default function PlaceAutocomplete({
         aria-expanded={open}
         aria-autocomplete="list"
         aria-controls={`${id}-listbox`}
-        className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+        className="mt-1.5 block w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-white/25 transition focus:border-[#29b6f6]/50 focus:outline-none focus:ring-2 focus:ring-[#29b6f6]/20"
       />
       {open && predictions.length > 0 && (
         <ul
           id={`${id}-listbox`}
           role="listbox"
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-white/[0.08] bg-[#1e1e22] py-1 shadow-xl"
         >
           {predictions.map((p, i) => (
             <li
@@ -127,13 +127,13 @@ export default function PlaceAutocomplete({
               onMouseEnter={() => setActiveIdx(i)}
               className={`cursor-pointer px-4 py-2.5 text-sm transition ${
                 i === activeIdx
-                  ? "bg-primary-50 text-primary-700"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-[#29b6f6]/10 text-[#29b6f6]"
+                  : "text-white/70 hover:bg-white/[0.04]"
               }`}
             >
-              <span className="font-medium">{p.mainText}</span>
+              <span className="font-medium text-white">{p.mainText}</span>
               {p.secondaryText && (
-                <span className="ml-1.5 text-slate-400">
+                <span className="ml-1.5 text-white/30">
                   {p.secondaryText}
                 </span>
               )}

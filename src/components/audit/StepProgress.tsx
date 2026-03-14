@@ -18,10 +18,10 @@ export default function StepProgress({
               <div
                 className={`mx-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                   done
-                    ? "bg-primary-600 text-white"
+                    ? "bg-[#29b6f6] text-white"
                     : active
-                      ? "bg-primary-600 text-white ring-4 ring-primary-100"
-                      : "bg-slate-200 text-slate-500"
+                      ? "bg-[#29b6f6] text-white ring-4 ring-[#29b6f6]/20"
+                      : "bg-white/[0.06] text-white/30"
                 }`}
               >
                 {done ? (
@@ -45,7 +45,7 @@ export default function StepProgress({
             </div>
             <span
               className={`text-center text-xs font-medium ${
-                done || active ? "text-primary-700" : "text-slate-400"
+                done || active ? "text-[#29b6f6]" : "text-white/25"
               }`}
             >
               {s.label}

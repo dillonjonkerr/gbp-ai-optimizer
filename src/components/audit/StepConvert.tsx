@@ -47,7 +47,6 @@ export default function StepConvert({
     }
   }, [result, businessInfo]);
 
-  // Auto-download on successful Stripe payment redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
@@ -64,7 +63,6 @@ export default function StepConvert({
       return;
     }
 
-    // Stripe configured — redirect to checkout
     setDownloading(true);
     try {
       const res = await fetch("/api/create-checkout", {
@@ -98,26 +96,26 @@ export default function StepConvert({
     <div className="space-y-10">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/60 px-3 py-1 text-xs font-semibold text-emerald-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#22c55e]/20 bg-[#22c55e]/[0.06] px-3 py-1 text-xs font-extrabold uppercase tracking-[2px] text-[#22c55e]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#22c55e]" />
           Analysis Complete
         </div>
 
-        <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        <h1 className="mt-5 text-3xl font-black tracking-tight sm:text-4xl">
           How do you want to
           <br />
-          <span className="text-primary-600">fix your rankings?</span>
+          <span className="text-[#29b6f6]">fix your rankings?</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-500">
+        <p className="mx-auto mt-4 max-w-lg text-base font-medium leading-relaxed text-white/40">
           We found{" "}
-          <span className="font-semibold text-rose-600">
+          <span className="font-bold text-rose-400">
             {gapCount} keyword gaps
           </span>{" "}
           where{" "}
-          <span className="font-medium text-slate-700">{competitor}</span> is
+          <span className="font-bold text-white/60">{competitor}</span> is
           outranking you, costing you an estimated{" "}
-          <span className="font-semibold text-rose-600">
+          <span className="font-bold text-rose-400">
             {missedTraffic.toLocaleString()} searches/month
           </span>
           . Choose how you want to fix it.
@@ -127,26 +125,26 @@ export default function StepConvert({
       {/* Two options */}
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Option A: AI Implementation (Free, Recommended) */}
-        <div className="relative flex flex-col rounded-2xl border-2 border-primary-500 bg-white p-8 shadow-lg">
-          <div className="absolute -top-3 right-6 rounded-full bg-primary-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+        <div className="relative flex flex-col rounded-2xl border-2 border-[#29b6f6]/40 bg-[#16161a] p-8">
+          <div className="absolute -top-3 right-6 rounded-full bg-[#29b6f6] px-3 py-1 text-xs font-black text-white shadow-lg shadow-[#29b6f6]/30">
             Recommended
           </div>
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-2xl">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#29b6f6]/10 text-2xl">
             🤖
           </div>
 
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
+          <h2 className="mt-5 text-xl font-black text-white">
             Let AI Fix It For You
           </h2>
 
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-white/35">
             Connect your Google Business Profile and let our AI implement every
             optimization automatically. We push changes live so you start
             ranking faster.
           </p>
 
-          <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
+          <ul className="mt-5 space-y-2.5 text-sm text-white/50">
             {[
               "Full keyword gap analysis",
               "AI writes your business description",
@@ -156,7 +154,7 @@ export default function StepConvert({
               "Monthly ranking monitoring",
             ].map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs text-primary-600">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#29b6f6]/15 text-xs font-bold text-[#29b6f6]">
                   ✓
                 </span>
                 {item}
@@ -166,37 +164,37 @@ export default function StepConvert({
 
           <div className="mt-auto pt-6">
             <div className="mb-3 text-center">
-              <span className="text-2xl font-bold text-emerald-600">Free</span>
+              <span className="text-2xl font-black text-[#22c55e]">Free</span>
             </div>
             <button
               onClick={() => setShowConnectModal(true)}
-              className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="w-full rounded-full bg-[#29b6f6] px-6 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_6px_24px_rgba(41,182,246,0.4)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_32px_rgba(41,182,246,0.55)]"
             >
               Connect My Google Profile
             </button>
-            <p className="mt-2 text-center text-xs text-slate-400">
+            <p className="mt-2 text-center text-xs font-semibold text-white/20">
               No credit card required
             </p>
           </div>
         </div>
 
         {/* Option B: DIY PDF ($9.99) */}
-        <div className="flex flex-col rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-sm transition hover:border-slate-300 hover:shadow-md">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+        <div className="flex flex-col rounded-2xl border border-white/[0.07] bg-[#16161a] p-8 transition hover:border-white/[0.12]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.06] text-2xl">
             📄
           </div>
 
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
+          <h2 className="mt-5 text-xl font-black text-white">
             DIY Optimization Guide
           </h2>
 
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-white/35">
             Download a detailed report with every recommendation, keyword gap,
             and step-by-step instructions to optimize your Google Business
             Profile yourself.
           </p>
 
-          <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
+          <ul className="mt-5 space-y-2.5 text-sm text-white/50">
             {[
               "Full keyword gap analysis",
               "Competitor comparison breakdown",
@@ -205,7 +203,7 @@ export default function StepConvert({
               "Priority action items",
             ].map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-xs font-bold text-white/40">
                   ✓
                 </span>
                 {item}
@@ -215,17 +213,17 @@ export default function StepConvert({
 
           <div className="mt-auto pt-6">
             <div className="mb-3 text-center">
-              <span className="text-2xl font-bold text-slate-900">$9.99</span>
-              <span className="text-sm text-slate-400"> one-time</span>
+              <span className="text-2xl font-black text-white">$9.99</span>
+              <span className="text-sm font-semibold text-white/25"> one-time</span>
             </div>
             <button
               onClick={handleDownloadPDF}
               disabled={downloading}
-              className="w-full rounded-xl border-2 border-slate-900 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-60"
+              className="w-full rounded-full border-2 border-white/20 bg-transparent px-6 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:border-white/40 hover:bg-white/[0.04] disabled:opacity-60"
             >
               {downloading ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Generating…
                 </span>
               ) : (
@@ -236,16 +234,16 @@ export default function StepConvert({
         </div>
       </div>
 
-      {/* Quick recap */}
-      <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-6">
-        <h3 className="text-sm font-bold text-amber-800">
+      {/* Warning */}
+      <div className="rounded-2xl border border-amber-500/15 bg-amber-500/[0.04] p-6">
+        <h3 className="text-sm font-black text-amber-400">
           What happens if you do nothing?
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-amber-900/70">
+        <p className="mt-2 text-sm font-medium leading-relaxed text-amber-400/50">
           {competitor} will continue capturing{" "}
-          <strong>{missedTraffic.toLocaleString()} searches every month</strong>{" "}
+          <strong className="text-amber-400">{missedTraffic.toLocaleString()} searches every month</strong>{" "}
           that could be going to your business. Over 12 months, that&apos;s{" "}
-          <strong>
+          <strong className="text-amber-400">
             {(missedTraffic * 12).toLocaleString()} potential customers
           </strong>{" "}
           you&apos;ll miss.
@@ -256,13 +254,12 @@ export default function StepConvert({
       <div>
         <button
           onClick={onBack}
-          className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          className="rounded-full border border-white/10 bg-transparent px-5 py-2.5 text-sm font-bold text-white/40 transition hover:bg-white/[0.04] hover:text-white/60"
         >
           ← Back to Report
         </button>
       </div>
 
-      {/* Connect Profile Modal */}
       {showConnectModal && (
         <ConnectModal
           businessName={businessInfo.businessName}
@@ -270,7 +267,6 @@ export default function StepConvert({
         />
       )}
 
-      {/* Beta Download Modal */}
       {showBetaModal && (
         <BetaDownloadModal
           onClose={() => setShowBetaModal(false)}
@@ -283,8 +279,6 @@ export default function StepConvert({
     </div>
   );
 }
-
-// ── Connect Profile Modal ──────────────────────────────────────────────────
 
 function ConnectModal({
   businessName,
@@ -310,22 +304,25 @@ function ConnectModal({
     setSubmitted(true);
   }
 
+  const inputCls =
+    "mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white transition focus:outline-none focus:ring-2 focus:ring-[#29b6f6]/20";
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-md rounded-2xl border border-white/[0.07] bg-[#16161a] p-8 shadow-xl">
         {!submitted ? (
           <>
-            <h3 className="text-xl font-bold text-slate-900">
+            <h3 className="text-xl font-black text-white">
               Connect Your Google Profile
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            <p className="mt-2 text-sm font-medium leading-relaxed text-white/35">
               Enter your email and we&apos;ll notify you as soon as your profile
               connection is ready. We&apos;re currently in early access.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
-                <label htmlFor="connect-biz" className="block text-sm font-medium text-slate-700">
+                <label htmlFor="connect-biz" className="block text-sm font-bold text-white/50">
                   Business Name
                 </label>
                 <input
@@ -333,12 +330,12 @@ function ConnectModal({
                   type="text"
                   value={businessName}
                   readOnly
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                  className={`${inputCls} text-white/40`}
                 />
               </div>
 
               <div>
-                <label htmlFor="connect-email" className="block text-sm font-medium text-slate-700">
+                <label htmlFor="connect-email" className="block text-sm font-bold text-white/50">
                   Email Address
                 </label>
                 <input
@@ -347,27 +344,25 @@ function ConnectModal({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                    emailError ? "border-rose-400" : "border-slate-200"
-                  }`}
+                  className={`${inputCls} placeholder-white/20 ${emailError ? "border-rose-500/50" : ""}`}
                   autoFocus
                 />
                 {emailError && (
-                  <p className="mt-1 text-xs text-rose-500">{emailError}</p>
+                  <p className="mt-1 text-xs font-semibold text-rose-400">{emailError}</p>
                 )}
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  className="flex-1 rounded-full bg-[#29b6f6] px-4 py-2.5 text-sm font-black text-white transition hover:shadow-lg hover:shadow-[#29b6f6]/30"
                 >
                   Join Early Access
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                  className="rounded-full border border-white/10 px-4 py-2.5 text-sm font-bold text-white/40 transition hover:bg-white/[0.04]"
                 >
                   Cancel
                 </button>
@@ -376,19 +371,19 @@ function ConnectModal({
           </>
         ) : (
           <div className="text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#22c55e]/15 text-2xl">
               ✓
             </div>
-            <h3 className="mt-4 text-xl font-bold text-slate-900">
+            <h3 className="mt-4 text-xl font-black text-white">
               You&apos;re on the list!
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            <p className="mt-2 text-sm font-medium leading-relaxed text-white/35">
               We&apos;ll be in touch! We&apos;re currently in early access
               — we&apos;ll email you when your profile connection is ready.
             </p>
             <button
               onClick={onClose}
-              className="mt-6 rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700"
+              className="mt-6 rounded-full bg-[#29b6f6] px-6 py-2.5 text-sm font-black text-white transition hover:shadow-lg hover:shadow-[#29b6f6]/30"
             >
               Done
             </button>
@@ -399,8 +394,6 @@ function ConnectModal({
   );
 }
 
-// ── Beta Download Modal ────────────────────────────────────────────────────
-
 function BetaDownloadModal({
   onClose,
   onDownload,
@@ -409,27 +402,27 @@ function BetaDownloadModal({
   onDownload: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-sm rounded-2xl border border-white/[0.07] bg-[#16161a] p-8 shadow-xl text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#29b6f6]/15 text-2xl">
           🎉
         </div>
-        <h3 className="mt-4 text-xl font-bold text-slate-900">
+        <h3 className="mt-4 text-xl font-black text-white">
           Beta Access
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+        <p className="mt-2 text-sm font-medium leading-relaxed text-white/35">
           Payment coming soon — download is free during beta!
         </p>
         <div className="mt-6 flex gap-3">
           <button
             onClick={onDownload}
-            className="flex-1 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700"
+            className="flex-1 rounded-full bg-[#29b6f6] px-4 py-2.5 text-sm font-black text-white transition hover:shadow-lg hover:shadow-[#29b6f6]/30"
           >
             Download Free
           </button>
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="rounded-full border border-white/10 px-4 py-2.5 text-sm font-bold text-white/40 transition hover:bg-white/[0.04]"
           >
             Cancel
           </button>

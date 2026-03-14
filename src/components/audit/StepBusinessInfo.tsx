@@ -104,13 +104,16 @@ export default function StepBusinessInfo({
     });
   }
 
+  const inputCls =
+    "mt-1.5 block w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-white placeholder-white/25 transition focus:border-[#29b6f6]/50 focus:outline-none focus:ring-2 focus:ring-[#29b6f6]/20";
+
   return (
     <div className="mx-auto max-w-xl">
       <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
           Let&apos;s audit your Google Business Profile
         </h1>
-        <p className="mt-3 text-base text-slate-500">
+        <p className="mt-3 text-base font-medium text-white/40">
           Tell us about your business and we&apos;ll scan your local market,
           analyze your profile, and show you exactly how to rank higher.
         </p>
@@ -118,7 +121,7 @@ export default function StepBusinessInfo({
 
       <form
         onSubmit={handleSubmit}
-        className="mt-10 space-y-5 rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm ring-1 ring-slate-900/5"
+        className="mt-10 space-y-5 rounded-2xl border border-white/[0.07] bg-[#16161a] p-8"
       >
         <PlaceAutocomplete
           id="businessName"
@@ -131,7 +134,7 @@ export default function StepBusinessInfo({
         <div>
           <label
             htmlFor="city"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-bold text-white/60"
           >
             Main area / city
           </label>
@@ -142,13 +145,13 @@ export default function StepBusinessInfo({
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="e.g. Sandy, Utah"
-            className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className={inputCls}
           />
         </div>
         <div>
           <label
             htmlFor="industry"
-            className="block text-sm font-medium text-slate-700"
+            className="block text-sm font-bold text-white/60"
           >
             Business category
           </label>
@@ -157,7 +160,7 @@ export default function StepBusinessInfo({
             required
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className={inputCls}
           >
             <option value="">Select your industry</option>
             {INDUSTRIES.map((opt) => (
@@ -169,7 +172,7 @@ export default function StepBusinessInfo({
         </div>
 
         {error && (
-          <p className="text-sm text-rose-600" role="alert">
+          <p className="text-sm font-semibold text-rose-400" role="alert">
             {error}
           </p>
         )}
@@ -177,7 +180,7 @@ export default function StepBusinessInfo({
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
+          className="w-full rounded-full bg-[#29b6f6] px-5 py-3.5 text-sm font-black uppercase tracking-wide text-white shadow-[0_6px_24px_rgba(41,182,246,0.4)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_32px_rgba(41,182,246,0.55)] focus:outline-none focus:ring-2 focus:ring-[#29b6f6] focus:ring-offset-2 focus:ring-offset-[#16161a] disabled:opacity-60 disabled:pointer-events-none"
         >
           {loading ? (
             <span className="inline-flex items-center gap-2">
@@ -189,7 +192,7 @@ export default function StepBusinessInfo({
           )}
         </button>
 
-        <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs font-semibold text-white/20">
           Free audit — no credit card required
         </p>
       </form>
