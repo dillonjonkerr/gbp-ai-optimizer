@@ -280,6 +280,27 @@ async function getKeywordSerp(
   return { myRank, organics };
 }
 
+// ── Directory / aggregator blocklist ──────────────────────────────────────
+
+const BLOCKED_DOMAINS = new Set([
+  "yelp.com", "angi.com", "angieslist.com", "homeadvisor.com",
+  "thumbtack.com", "houzz.com", "bbb.org", "porch.com", "bark.com",
+  "checkatrade.com", "hipages.com", "facebook.com", "instagram.com",
+  "youtube.com", "google.com", "bing.com", "yellowpages.com",
+  "mapquest.com", "tripadvisor.com", "linkedin.com", "twitter.com",
+  "x.com", "tiktok.com", "pinterest.com", "nextdoor.com",
+  "manta.com", "chamberofcommerce.com", "superpages.com",
+  "whitepages.com", "buildzoom.com", "expertise.com",
+  "topratedlocal.com", "birdeye.com", "trustpilot.com",
+]);
+
+function isBlockedDomain(domain: string): boolean {
+  const lower = domain.toLowerCase();
+  return Array.from(BLOCKED_DOMAINS).some(
+    (blocked) => lower === blocked || lower.endsWith(`.${blocked}`),
+  );
+}
+
 // ── 4. Find consistent primary competitor ────────────────────────────────
 
 function findPrimaryCompetitor(
@@ -290,10 +311,9 @@ function findPrimaryCompetitor(
   for (const result of serpResults) {
     for (const org of result.organics) {
       const domain = org.domain.toLowerCase();
-      if (!domain) continue;
+      if (!domain || isBlockedDomain(domain)) continue;
 
       const entry = domainScores.get(domain) ?? { score: 0, names: new Map<string, number>() };
-      // Weight by position: rank 1 = 20pts, rank 20 = 1pt
       entry.score += Math.max(1, 21 - org.rank);
       entry.names.set(org.title, (entry.names.get(org.title) ?? 0) + 1);
       domainScores.set(domain, entry);
@@ -448,11 +468,12 @@ export async function runMarketScan(
   // Sort by traffic opportunity (highest first)
   gapKeywords.sort((a, b) => b.trafficOpportunity - a.trafficOpportunity);
 
-  // Step 6 — Top competitors list
+  // Step 6 — Top competitors list (excluding directories/aggregators)
   const domainCounts = new Map<string, { name: string; count: number }>();
   for (const serp of serpResults) {
     for (const org of serp.organics.slice(0, 5)) {
       const d = org.domain.toLowerCase();
+      if (isBlockedDomain(d)) continue;
       const entry = domainCounts.get(d) ?? { name: org.title, count: 0 };
       entry.count++;
       domainCounts.set(d, entry);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { AuditResult, BusinessInfo } from "@/lib/types";
 
 export default function StepConvert({
@@ -13,12 +13,14 @@ export default function StepConvert({
   onBack: () => void;
 }) {
   const [downloading, setDownloading] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showBetaModal, setShowBetaModal] = useState(false);
 
   const gapCount = result.marketScan.keywords.length;
   const missedTraffic = result.marketScan.estimatedMissedTraffic;
   const competitor = result.marketScan.primaryCompetitorName;
 
-  async function handleDownloadPDF() {
+  const triggerDownload = useCallback(async () => {
     setDownloading(true);
     try {
       const res = await fetch("/api/audit-pdf", {
@@ -27,7 +29,7 @@ export default function StepConvert({
         body: JSON.stringify({ result, businessInfo }),
       });
 
-      if (!res.ok) throw new Error("Failed to generate PDF");
+      if (!res.ok) throw new Error("Failed to generate report");
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -40,6 +42,53 @@ export default function StepConvert({
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("PDF download failed:", err);
+    } finally {
+      setDownloading(false);
+    }
+  }, [result, businessInfo]);
+
+  // Auto-download on successful Stripe payment redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      window.history.replaceState({}, "", window.location.pathname);
+      triggerDownload();
+    }
+  }, [triggerDownload]);
+
+  async function handleDownloadPDF() {
+    const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+
+    if (!stripeKey) {
+      setShowBetaModal(true);
+      return;
+    }
+
+    // Stripe configured — redirect to checkout
+    setDownloading(true);
+    try {
+      const res = await fetch("/api/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnUrl: window.location.origin + "/audit" }),
+      });
+
+      const data = await res.json();
+
+      if (data.error === "STRIPE_NOT_CONFIGURED") {
+        setShowBetaModal(true);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      throw new Error("No checkout URL returned");
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      setShowBetaModal(true);
     } finally {
       setDownloading(false);
     }
@@ -120,9 +169,7 @@ export default function StepConvert({
               <span className="text-2xl font-bold text-emerald-600">Free</span>
             </div>
             <button
-              onClick={() => {
-                /* TODO: Connect GBP OAuth flow */
-              }}
+              onClick={() => setShowConnectModal(true)}
               className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               Connect My Google Profile
@@ -213,6 +260,180 @@ export default function StepConvert({
         >
           ← Back to Report
         </button>
+      </div>
+
+      {/* Connect Profile Modal */}
+      {showConnectModal && (
+        <ConnectModal
+          businessName={businessInfo.businessName}
+          onClose={() => setShowConnectModal(false)}
+        />
+      )}
+
+      {/* Beta Download Modal */}
+      {showBetaModal && (
+        <BetaDownloadModal
+          onClose={() => setShowBetaModal(false)}
+          onDownload={() => {
+            setShowBetaModal(false);
+            triggerDownload();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Connect Profile Modal ──────────────────────────────────────────────────
+
+function ConnectModal({
+  businessName,
+  onClose,
+}: {
+  businessName: string;
+  onClose: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError("");
+
+    const trimmed = email.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+
+    setSubmitted(true);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+        {!submitted ? (
+          <>
+            <h3 className="text-xl font-bold text-slate-900">
+              Connect Your Google Profile
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              Enter your email and we&apos;ll notify you as soon as your profile
+              connection is ready. We&apos;re currently in early access.
+            </p>
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <div>
+                <label htmlFor="connect-biz" className="block text-sm font-medium text-slate-700">
+                  Business Name
+                </label>
+                <input
+                  id="connect-biz"
+                  type="text"
+                  value={businessName}
+                  readOnly
+                  className="mt-1 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="connect-email" className="block text-sm font-medium text-slate-700">
+                  Email Address
+                </label>
+                <input
+                  id="connect-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    emailError ? "border-rose-400" : "border-slate-200"
+                  }`}
+                  autoFocus
+                />
+                {emailError && (
+                  <p className="mt-1 text-xs text-rose-500">{emailError}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                >
+                  Join Early Access
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div className="text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl">
+              ✓
+            </div>
+            <h3 className="mt-4 text-xl font-bold text-slate-900">
+              You&apos;re on the list!
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              We&apos;ll be in touch! We&apos;re currently in early access
+              — we&apos;ll email you when your profile connection is ready.
+            </p>
+            <button
+              onClick={onClose}
+              className="mt-6 rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700"
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Beta Download Modal ────────────────────────────────────────────────────
+
+function BetaDownloadModal({
+  onClose,
+  onDownload,
+}: {
+  onClose: () => void;
+  onDownload: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-100 text-2xl">
+          🎉
+        </div>
+        <h3 className="mt-4 text-xl font-bold text-slate-900">
+          Beta Access
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-slate-500">
+          Payment coming soon — download is free during beta!
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button
+            onClick={onDownload}
+            className="flex-1 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700"
+          >
+            Download Free
+          </button>
+          <button
+            onClick={onClose}
+            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );

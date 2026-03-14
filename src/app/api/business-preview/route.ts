@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rateLimit";
+import { apiErrorResponse } from "@/lib/apiError";
 
 function getGoogleKey() {
   const key = process.env.GOOGLE_PLACES_API_KEY;
@@ -25,6 +27,9 @@ async function getDetails(placeId: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, { routeKey: "business-preview", maxRequests: 10, windowMs: 60 * 60 * 1000 });
+  if (limited) return limited;
+
   try {
     const { businessName, city, industry } = (await request.json()) as {
       businessName: string;
@@ -152,8 +157,6 @@ export async function POST(request: NextRequest) {
       insights,
     });
   } catch (error) {
-    console.error("[business-preview]", error);
-    const msg = error instanceof Error ? error.message : "Preview failed";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return apiErrorResponse(error, "business-preview");
   }
 }

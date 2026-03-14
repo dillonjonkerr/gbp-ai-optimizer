@@ -5,6 +5,8 @@ import type {
   AuditResult,
 } from "@/lib/types";
 import { runMarketScan } from "@/lib/dataforseo";
+import { rateLimit } from "@/lib/rateLimit";
+import { apiErrorResponse } from "@/lib/apiError";
 
 // ── Request payload ──────────────────────────────────────────────────────
 
@@ -181,6 +183,9 @@ Be specific and actionable. Reference the actual data.`;
 // ── Route handler ────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(request, { routeKey: "gbp-audit", maxRequests: 3, windowMs: 60 * 60 * 1000 });
+  if (limited) return limited;
+
   try {
     const body = (await request.json()) as Payload;
     const { businessName, city, industry } = body;
@@ -302,9 +307,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("[gbp-audit] Error:", error);
-    const message =
-      error instanceof Error ? error.message : "Failed to run audit";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiErrorResponse(error, "gbp-audit");
   }
 }

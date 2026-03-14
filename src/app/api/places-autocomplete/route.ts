@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function GET(request: NextRequest) {
+  const limited = rateLimit(request, { routeKey: "places-autocomplete", maxRequests: 60, windowMs: 60 * 60 * 1000 });
+  if (limited) return limited;
+
   const query = request.nextUrl.searchParams.get("q");
   if (!query || query.length < 2) {
     return NextResponse.json({ predictions: [] });
