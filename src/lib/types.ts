@@ -29,12 +29,25 @@ export type KeywordData = {
   missedTraffic: number;
 };
 
+export type BusinessProfile = {
+  name: string;
+  rating: number;
+  reviewCount: number;
+  photoCount: number;
+  hasWebsite: boolean;
+  hasPhone: boolean;
+  category: string;
+  address: string;
+};
+
 export type MarketScan = {
   keywords: KeywordData[];
   topCompetitors: string[];
   estimatedMissedTraffic: number;
   radiusMiles: number;
   totalLocalSearches: number;
+  yourProfile: BusinessProfile;
+  competitorProfile: BusinessProfile | null;
 };
 
 // Step 3 — Comparison report

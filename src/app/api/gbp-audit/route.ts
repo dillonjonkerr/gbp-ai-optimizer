@@ -214,6 +214,41 @@ export async function POST(request: NextRequest) {
     const scanResult = await runMarketScan(businessName, city, industry);
     console.log("[gbp-audit] Market scan complete:", scanResult.keywords.length, "keywords");
 
+    // Step 5b — Look up top competitor via Google Places for real comparison data
+    let competitorProfile = null;
+    const primaryCompetitorName = scanResult.primaryCompetitor;
+    if (primaryCompetitorName && primaryCompetitorName !== "Unknown") {
+      try {
+        console.log("[gbp-audit] Looking up competitor:", primaryCompetitorName);
+        const compPlace = await searchPlace(primaryCompetitorName, city);
+        const compDetails = await getPlaceDetails(compPlace.place_id);
+        competitorProfile = {
+          name: compDetails.name ?? primaryCompetitorName,
+          rating: compDetails.rating ?? 0,
+          reviewCount: compDetails.user_ratings_total ?? 0,
+          photoCount: compDetails.photos?.length ?? 0,
+          hasWebsite: Boolean(compDetails.website),
+          hasPhone: Boolean(compDetails.formatted_phone_number),
+          category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
+          address: compDetails.formatted_address ?? "",
+        };
+        console.log("[gbp-audit] Competitor profile:", competitorProfile.name, competitorProfile.rating);
+      } catch (err) {
+        console.warn("[gbp-audit] Could not fetch competitor profile:", err);
+      }
+    }
+
+    const yourProfile = {
+      name: profile.name,
+      rating: profile.rating,
+      reviewCount: profile.reviewCount,
+      photoCount: profile.photoCount,
+      hasWebsite: profile.hasWebsite,
+      hasPhone: profile.hasPhone,
+      category: profile.category,
+      address: profile.address,
+    };
+
     const marketScan = {
       keywords: scanResult.keywords.map((k) => ({
         keyword: k.keyword,
@@ -227,6 +262,8 @@ export async function POST(request: NextRequest) {
       estimatedMissedTraffic: scanResult.marketOpportunity,
       radiusMiles: 15,
       totalLocalSearches: scanResult.totalLocalSearches,
+      yourProfile,
+      competitorProfile,
     };
 
     // Step 6 — Build comparison report

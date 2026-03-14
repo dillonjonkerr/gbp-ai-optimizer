@@ -42,6 +42,7 @@ async function dfsPost<T>(endpoint: string, body: unknown[]): Promise<T> {
 
 // ── 1. Keyword Ideas ─────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KeywordIdeasResponse = {
   status_code: number;
   status_message: string;
@@ -50,32 +51,42 @@ type KeywordIdeasResponse = {
     status_message: string;
     result: {
       seed_keywords: string[];
-      items: {
-        keyword: string;
-        search_volume: number;
-      }[];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: any[];
     }[];
   }[];
 };
 
 export type KeywordSeed = { keyword: string; volume: number };
 
+function buildSeeds(category: string, city: string): string[] {
+  const cat = category.toLowerCase();
+  const loc = city.toLowerCase();
+  return [
+    `${cat} ${loc}`,
+    `${cat} near me`,
+    `best ${cat} ${loc}`,
+    `${cat} services ${loc}`,
+    `local ${cat} ${loc}`,
+  ];
+}
+
 export async function getKeywordIdeas(
   category: string,
   city: string,
 ): Promise<KeywordSeed[]> {
-  const seed = `${category} ${city}`.toLowerCase();
-  console.log("[dataforseo] Keyword seed:", seed);
+  const seeds = buildSeeds(category, city);
+  console.log("[dataforseo] Keyword seeds:", seeds);
 
   const data = await dfsPost<KeywordIdeasResponse>(
     "dataforseo_labs/google/keyword_ideas/live",
     [
       {
-        keywords: [seed],
+        keywords: seeds,
         language_code: "en",
         location_name: "United States",
         include_seed_keyword: true,
-        limit: 10,
+        limit: 30,
         order_by: ["keyword_info.search_volume,desc"],
       },
     ],
@@ -90,15 +101,25 @@ export async function getKeywordIdeas(
   }
 
   const items = task.result?.[0]?.items ?? [];
-  console.log("[dataforseo] Got", items.length, "keyword ideas");
+  console.log("[dataforseo] Raw items:", items.length);
+  if (items.length > 0) {
+    console.log("[dataforseo] Sample item structure:", JSON.stringify(items[0], null, 2).slice(0, 500));
+  }
 
-  return items
-    .map((item) => ({
-      keyword: item.keyword,
-      volume: item.search_volume ?? 0,
+  const parsed = items
+    .map((item: Record<string, unknown>) => ({
+      keyword: String(item.keyword ?? ""),
+      volume:
+        (item as Record<string, Record<string, number>>).keyword_info?.search_volume ??
+        (item as Record<string, number>).search_volume ??
+        0,
     }))
-    .sort((a, b) => b.volume - a.volume)
+    .filter((k: KeywordSeed) => k.volume > 0)
+    .sort((a: KeywordSeed, b: KeywordSeed) => b.volume - a.volume)
     .slice(0, 10);
+
+  console.log("[dataforseo] Parsed keywords with volume:", parsed.length);
+  return parsed;
 }
 
 // ── 2. SERP Rankings ─────────────────────────────────────────────────────
@@ -127,6 +148,7 @@ type SerpRankResult = {
   myRank: number | null;
   competitorRank: number;
   topCompetitor: string;
+  topCompetitorDomain: string;
   topCompetitors: string[];
 };
 
@@ -163,9 +185,11 @@ export async function getSerpRankings(
   );
 
   const businessLower = businessName.toLowerCase();
+  const businessWords = businessLower.split(/\s+/).filter((w) => w.length > 2);
   let myRank: number | null = null;
   let competitorRank = 1;
   let topCompetitor = "Unknown";
+  let topCompetitorDomain = "";
   const topCompetitors: string[] = [];
 
   for (const item of items) {
@@ -173,7 +197,9 @@ export async function getSerpRankings(
     const domain = (item.domain ?? "").toLowerCase();
 
     const isMe =
-      title.includes(businessLower) || domain.includes(businessLower.replace(/\s+/g, ""));
+      title.includes(businessLower) ||
+      domain.includes(businessLower.replace(/\s+/g, "")) ||
+      businessWords.every((w) => title.includes(w));
 
     if (isMe && myRank === null) {
       myRank = item.rank_group;
@@ -185,11 +211,12 @@ export async function getSerpRankings(
       if (topCompetitor === "Unknown") {
         competitorRank = item.rank_group;
         topCompetitor = name;
+        topCompetitorDomain = item.domain ?? "";
       }
     }
   }
 
-  return { myRank, competitorRank, topCompetitor, topCompetitors };
+  return { myRank, competitorRank, topCompetitor, topCompetitorDomain, topCompetitors };
 }
 
 // ── 3. Calculate missed traffic ──────────────────────────────────────────
@@ -224,6 +251,7 @@ export type MarketKeyword = {
 export type MarketScanResult = {
   keywords: MarketKeyword[];
   topCompetitors: string[];
+  primaryCompetitor: string;
   marketOpportunity: number;
   totalLocalSearches: number;
 };
@@ -278,8 +306,9 @@ export async function runMarketScan(
     .slice(0, 5)
     .map(([name]) => name);
 
+  const primaryCompetitor = topCompetitors[0] ?? "Unknown";
   const marketOpportunity = keywords.reduce((s, k) => s + k.missedTraffic, 0);
   const totalLocalSearches = keywords.reduce((s, k) => s + k.volume, 0);
 
-  return { keywords, topCompetitors, marketOpportunity, totalLocalSearches };
+  return { keywords, topCompetitors, primaryCompetitor, marketOpportunity, totalLocalSearches };
 }
