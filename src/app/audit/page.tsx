@@ -103,6 +103,7 @@ export default function AuditPage() {
         {step === 1 && auditResult && (
           <StepMarketScan
             data={auditResult.marketScan}
+            comparison={auditResult.comparison}
             businessName={businessInfo.businessName}
             city={businessInfo.city}
             onNext={() => setStep(2)}
