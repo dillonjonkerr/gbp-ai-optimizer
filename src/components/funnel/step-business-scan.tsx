@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { AIBadge } from '@/components/ai-badge'
 import { FacebookReviewsWidget } from '@/components/facebook-reviews-widget'
 import {
   Search, ArrowRight, MapPinned, Building, Shield, CreditCard,
-  Paintbrush, Star, MapPin, Phone, Globe, ImageIcon, Loader2, X
+  Paintbrush, Star, MapPin, Phone, Globe, ImageIcon, Loader2, X,
+  TrendingDown, Users, Clock, Zap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -34,20 +34,20 @@ interface BusinessPreview {
   category: string
 }
 
-const carouselItems = [
-  'Full GBP Audit & Score',
-  'Local Keyword Gap Analysis',
-  'Competitor Comparison',
-  'AI Optimization Plan',
-  'Review Strategy',
-  'Photo Recommendations',
-  'Post & Q&A Suggestions',
+const scanReveals = [
+  'Which competitor ranks #1 for your keywords',
+  'How many searches you lose every month',
+  'Your exact review gap vs the top competitor',
+  'Missing keywords that drive painting leads',
+  'Profile gaps hurting your visibility',
+  'AI-generated fix plan with exact steps',
 ]
 
 const trustItems = [
-  { icon: Shield, text: 'Free Optimization' },
-  { icon: CreditCard, text: 'No Credit Card' },
-  { icon: Paintbrush, text: 'Made For Painters' },
+  { icon: Clock, text: 'Takes 60 seconds' },
+  { icon: Shield, text: 'No signup required' },
+  { icon: CreditCard, text: 'No credit card' },
+  { icon: Paintbrush, text: 'Built for painters' },
 ]
 
 export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
@@ -55,38 +55,24 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
   const [city, setCity] = useState('')
   const [isHovering, setIsHovering] = useState(false)
 
-  // Autocomplete
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Business preview
   const [preview, setPreview] = useState<BusinessPreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
 
-  // Carousel
-  const [carouselIdx, setCarouselIdx] = useState(0)
-
-  // Trust animation
-  const [trustIdx, setTrustIdx] = useState(0)
+  const [revealIdx, setRevealIdx] = useState(0)
 
   const isValid = businessName.trim() && city.trim()
 
-  // Carousel rotation
   useEffect(() => {
-    const t = setInterval(() => setCarouselIdx(i => (i + 1) % carouselItems.length), 2400)
+    const t = setInterval(() => setRevealIdx(i => (i + 1) % scanReveals.length), 2800)
     return () => clearInterval(t)
   }, [])
 
-  // Trust animation rotation
-  useEffect(() => {
-    const t = setInterval(() => setTrustIdx(i => (i + 1) % trustItems.length), 3000)
-    return () => clearInterval(t)
-  }, [])
-
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -97,7 +83,6 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Autocomplete fetch
   const fetchPredictions = useCallback(async (q: string) => {
     if (q.length < 2) { setPredictions([]); return }
     try {
@@ -116,14 +101,12 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     debounceRef.current = setTimeout(() => fetchPredictions(val), 300)
   }
 
-  // When user picks a prediction
   const handleSelectPrediction = async (pred: Prediction) => {
     setBusinessName(pred.mainText)
     setShowDropdown(false)
     setSelectedPlaceId(pred.placeId)
     setPredictions([])
 
-    // Extract city from secondary text
     const parts = pred.secondaryText.split(',')
     if (parts.length >= 2) {
       setCity(parts.slice(0, 2).join(',').trim())
@@ -131,7 +114,6 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
       setCity(parts[0].trim())
     }
 
-    // Fetch preview
     setPreviewLoading(true)
     try {
       const res = await fetch('/api/business-preview', {
@@ -168,33 +150,45 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     <div data-id="S1" className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-8">
       <div data-id="SW" className="mx-auto w-full max-w-lg flex-1 flex flex-col justify-center">
 
-        {/* Hero Section */}
-        <div data-id="HR" className="text-center mb-5">
-          <AIBadge className="mx-auto animate-scale-in mb-4" />
-          <h1 data-id="H1" className="text-2xl font-black uppercase tracking-tight text-foreground sm:text-3xl leading-[1.1] mb-3">
-            Fully Optimize Your<br />
-            <span className="text-primary">GBP In 3 Minutes</span>
+        {/* Problem-First Hero — Schwartz Level 2 (Problem-Aware) */}
+        <div data-id="HR" className="text-center mb-6">
+
+          {/* Agitation badge */}
+          <div data-id="AB" className="inline-flex items-center gap-2 rounded-full bg-red-50 border border-red-200 px-4 py-1.5 text-red-700 text-xs font-bold mb-4 animate-scale-in">
+            <TrendingDown className="h-3.5 w-3.5" />
+            Your competitors are outranking you on Google
+          </div>
+
+          {/* Problem headline */}
+          <h1 data-id="H1" className="text-[1.65rem] font-black tracking-tight text-foreground sm:text-[2rem] leading-[1.15] mb-3">
+            Homeowners are searching for painters in your area.{' '}
+            <span className="text-primary">They&apos;re hiring your competitors instead.</span>
           </h1>
 
-          {/* Carousel of included features */}
-          <div data-id="CR" className="h-7 overflow-hidden relative">
-            {carouselItems.map((item, i) => (
+          {/* Agitation sub-copy */}
+          <p data-id="H2" className="text-[15px] text-muted-foreground font-medium leading-relaxed mb-4 max-w-md mx-auto">
+            Most painting contractors lose 50+ leads every month because their Google Business Profile has gaps they can&apos;t see. Our AI finds them in 60 seconds.
+          </p>
+
+          {/* What the scan reveals — rotating */}
+          <div data-id="CR" className="h-7 overflow-hidden relative mb-1">
+            {scanReveals.map((item, i) => (
               <div
                 key={item}
                 className={cn(
                   'absolute inset-x-0 flex items-center justify-center gap-2 transition-all duration-500',
-                  i === carouselIdx ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+                  i === revealIdx ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
                 )}
               >
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                <span className="text-sm font-semibold text-muted-foreground">{item}</span>
+                <Zap className="h-3.5 w-3.5 text-primary fill-primary" />
+                <span className="text-sm font-semibold text-foreground">{item}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Profile Circles — overlapping real reviewer photos */}
-        <div data-id="PC" className="flex items-center justify-center gap-3 mb-6">
+        {/* Social proof — results-focused */}
+        <div data-id="PC" className="flex items-center justify-center gap-3 mb-5">
           <div className="flex -space-x-2.5">
             {[
               'https://i.pravatar.cc/80?img=11',
@@ -212,11 +206,11 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
             ))}
           </div>
           <span className="text-sm font-bold text-muted-foreground">
-            Helped <span className="text-foreground">100+</span> painters
+            <span className="text-foreground">2,847</span> profiles scanned this month
           </span>
         </div>
 
-        {/* GBP Preview Card — shows after selecting a business */}
+        {/* GBP Preview Card */}
         {previewLoading && (
           <div data-id="PL" className="mb-4 flex items-center justify-center gap-2 rounded-xl border-2 border-primary/30 bg-primary/5 p-5">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -237,7 +231,6 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
             </div>
             <div className="p-4">
               <div className="flex gap-3">
-                {/* Main photo */}
                 {preview.photoUrls?.[0] ? (
                   <img
                     src={preview.photoUrls[0]}
@@ -309,7 +302,6 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
                 />
               </div>
 
-              {/* Autocomplete dropdown */}
               {showDropdown && predictions.length > 0 && (
                 <div data-id="AD" className="absolute z-50 mt-1 w-full rounded-xl border-2 border-border bg-card shadow-xl overflow-hidden animate-fade-in-up">
                   {predictions.map((p) => (
@@ -353,33 +345,29 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
             type="submit"
             disabled={!isValid}
             className={cn(
-              'w-full h-13 text-lg font-black rounded-xl transition-all duration-300 shadow-lg',
+              'w-full h-14 text-lg font-black rounded-xl transition-all duration-300 shadow-lg',
               isValid && 'shadow-xl shadow-primary/40 animate-pulse-glow'
             )}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
           >
             <Search className={cn('mr-2 h-5 w-5', isHovering && isValid && 'animate-pulse')} />
-            Scan My Business
+            See Who&apos;s Outranking You
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </form>
 
-        {/* Trust indicators — animated cycling */}
+        {/* Trust indicators — static row (Cialdini: reduce friction) */}
         <div data-id="TI" className="pt-4">
-          <div className="flex items-center justify-center gap-3">
-            {trustItems.map((item, i) => {
+          <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2">
+            {trustItems.map((item) => {
               const Icon = item.icon
-              const isActive = i === trustIdx
               return (
                 <span
                   key={item.text}
-                  className={cn(
-                    'flex items-center gap-1.5 text-xs font-bold transition-all duration-500',
-                    isActive ? 'text-primary scale-105' : 'text-muted-foreground'
-                  )}
+                  className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground"
                 >
-                  <Icon className={cn('h-3.5 w-3.5', isActive && 'text-primary')} />
+                  <Icon className="h-3.5 w-3.5 text-primary" />
                   {item.text}
                 </span>
               )

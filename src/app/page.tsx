@@ -46,11 +46,13 @@ export default function FunnelPage() {
     router.push('/dashboard')
   }
 
+  const missedSearches = auditResult?.marketScan.estimatedMissedTraffic ?? 0
+
   return (
     <div data-id="PG" className={`min-h-screen bg-background ${qaMode ? 'qa-debug' : ''}`}>
-      <header data-id="HD" className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div data-id="HI" className="flex h-16 items-center justify-between px-5 sm:h-[72px] sm:px-6">
-          <Logo size="md" />
+      <header data-id="HD" className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div data-id="HI" className="flex h-14 items-center justify-between px-4 sm:h-16 sm:px-6">
+          <Logo size="sm" />
           <ProgressSteps currentStep={currentStep} totalSteps={4} />
         </div>
       </header>
@@ -64,19 +66,22 @@ export default function FunnelPage() {
           <StepResults businessData={businessData} auditResult={auditResult} onNext={handleStep3Complete} />
         )}
         {currentStep === 4 && (
-          <StepChooseOption onSelectDIY={handleSelectDIY} onSelectAI={handleSelectAI} />
+          <StepChooseOption
+            onSelectDIY={handleSelectDIY}
+            onSelectAI={handleSelectAI}
+            missedSearches={missedSearches}
+          />
         )}
       </main>
 
-      <footer data-id="FT" className="border-t-2 border-border bg-background py-6">
-        <div data-id="FC" className="mx-auto max-w-4xl px-5 text-center sm:px-6">
-          <p data-id="FP" className="text-sm font-semibold text-muted-foreground">
-            Paint &amp; Profits - Marketing for Painters
+      <footer data-id="FT" className="border-t border-border bg-background py-5">
+        <div data-id="FC" className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+          <p data-id="FP" className="text-xs font-medium text-muted-foreground">
+            Paint &amp; Profits &middot; AI-Powered Marketing for Painters
           </p>
         </div>
       </footer>
 
-      {/* QA toggle — bottom-right corner */}
       <button
         onClick={() => setQaMode(prev => !prev)}
         className="fixed bottom-4 right-4 z-[9999] rounded-full px-3 py-1.5 text-xs font-bold shadow-lg"

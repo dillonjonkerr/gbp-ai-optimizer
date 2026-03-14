@@ -63,7 +63,11 @@ export default function OptimizerFunnelPage() {
           <StepResults businessData={businessData} auditResult={auditResult} onNext={handleStep3Complete} />
         )}
         {currentStep === 4 && (
-          <StepChooseOption onSelectDIY={handleSelectDIY} onSelectAI={handleSelectAI} />
+          <StepChooseOption
+            onSelectDIY={handleSelectDIY}
+            onSelectAI={handleSelectAI}
+            missedSearches={auditResult?.marketScan.estimatedMissedTraffic ?? 0}
+          />
         )}
       </main>
     </div>

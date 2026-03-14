@@ -3,9 +3,12 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, SearchX, Target, TrendingUp, Star, AlertTriangle, Trophy, Zap } from 'lucide-react'
-import { ImageIcon } from 'lucide-react'
+import {
+  ArrowRight, SearchX, Target, TrendingUp, Star, AlertTriangle,
+  Trophy, Zap, ImageIcon, DollarSign, TrendingDown, Eye, Sparkles
+} from 'lucide-react'
 import type { AuditResult } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface StepResultsProps {
   businessData: {
@@ -29,28 +32,56 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
   const visibilityScore = comparison.score
   const scoreColor = visibilityScore <= 40 ? 'text-red-500' : visibilityScore <= 65 ? 'text-amber-500' : 'text-green-500'
   const scoreBg = visibilityScore <= 40 ? 'bg-red-500' : visibilityScore <= 65 ? 'bg-amber-500' : 'bg-green-500'
+  const scoreLabel = visibilityScore <= 40 ? 'Poor' : visibilityScore <= 65 ? 'Below Average' : 'Good'
 
   const you = marketScan.yourProfile
   const comp = marketScan.competitorProfile
   const compName = marketScan.primaryCompetitorName
 
+  const estimatedMonthlyValue = Math.round(missedSearches * 0.08 * 3500)
+
   return (
     <div data-id="S3" className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-8">
-      <div data-id="RW" className="mx-auto w-full max-w-lg space-y-5">
+      <div data-id="RW" className="mx-auto w-full max-w-lg space-y-4">
         
+        {/* Shock headline — Schwartz: make the problem undeniable */}
         <div data-id="RH" className="space-y-3 text-center animate-fade-in-up">
           <Badge data-id="RB" variant="destructive" className="gap-2 px-4 py-2 text-sm font-bold shadow-lg shadow-destructive/30">
             <AlertTriangle className="h-4 w-4" />
-            {visibilityScore <= 50 ? 'Low Visibility Detected' : 'Opportunities Found'}
+            Ranking Gaps Found
           </Badge>
-          <h1 data-id="RT" className="text-2xl font-black tracking-tight text-foreground sm:text-3xl text-balance leading-tight">
-            Your competitors are capturing{' '}
-            <span className="text-destructive">{missedSearches.toLocaleString()}</span>{' '}
-            searches you&apos;re missing
+          <h1 data-id="RT" className="text-2xl font-black tracking-tight text-foreground sm:text-[1.75rem] text-balance leading-tight">
+            You&apos;re invisible for{' '}
+            <span className="text-destructive">{missingKeywords} of {totalKeywords}</span>{' '}
+            keywords homeowners search to find painters
           </h1>
+          <p data-id="RS" className="text-sm text-muted-foreground font-medium">
+            That&apos;s an estimated{' '}
+            <span className="font-black text-foreground">{missedSearches.toLocaleString()} missed searches</span>{' '}
+            per month going directly to your competitors.
+          </p>
         </div>
 
-        <Card data-id="VS" className="border-2 border-border bg-card shadow-lg animate-fade-in-up">
+        {/* Dollar value anchor — Hormozi: make the cost of inaction clear */}
+        <Card data-id="DV" className="border-2 border-red-200 bg-red-50 shadow-md animate-fade-in-up animation-delay-100">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shadow-red-500/30 shrink-0">
+                <DollarSign className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-red-700 uppercase tracking-wide">Estimated monthly revenue you&apos;re losing</p>
+                <p className="text-2xl font-black text-red-600">${estimatedMonthlyValue.toLocaleString()}/mo</p>
+                <p className="text-[11px] text-red-600/80 font-medium">
+                  Based on {missedSearches.toLocaleString()} missed searches × 8% conversion × avg painting job
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Visibility Score — the "grade" */}
+        <Card data-id="VS" className="border-2 border-border bg-card shadow-lg animate-fade-in-up animation-delay-200">
           <CardContent data-id="VC" className="p-5">
             <div className="flex items-center gap-5">
               <div data-id="VR" className="relative h-24 w-24 shrink-0">
@@ -60,22 +91,20 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span data-id="VN" className="text-3xl font-black text-foreground">{visibilityScore}</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Score</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">{scoreLabel}</span>
                 </div>
               </div>
               
               <div data-id="VD" className="flex-1">
-                <h3 data-id="VT" className="text-lg font-black text-foreground mb-1">GBP Optimization Score</h3>
+                <h3 data-id="VT" className="text-lg font-black text-foreground mb-1">Your Visibility Score</h3>
                 <p data-id="VP" className="text-sm text-muted-foreground font-medium mb-3">
-                  You&apos;re ranking for only{' '}
-                  <span className="text-destructive font-bold">
-                    {totalKeywords - missingKeywords} of {totalKeywords}
-                  </span>{' '}
-                  high-intent keywords
+                  {visibilityScore <= 50
+                    ? 'Most homeowners searching for painters in your area will never see your business.'
+                    : 'You have room to grow. Your top competitor is capturing searches you could win.'}
                 </p>
                 <div data-id="VB" className="flex items-center gap-2">
                   <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                    <div className={`h-full ${scoreBg} rounded-full`} style={{ width: `${visibilityScore}%` }}></div>
+                    <div className={`h-full ${scoreBg} rounded-full animate-bar-fill`} style={{ width: `${visibilityScore}%` }}></div>
                   </div>
                   <span className="text-xs font-bold text-muted-foreground">Goal: 80+</span>
                 </div>
@@ -84,88 +113,46 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
           </CardContent>
         </Card>
 
-        <div data-id="KI" className="grid grid-cols-2 gap-3 animate-fade-in-up animation-delay-100">
-          <Card data-id="KM" className="border-2 border-border bg-card shadow-md">
-            <CardContent className="p-4 text-center">
-              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shadow-red-500/30">
-                <SearchX className="h-6 w-6" />
-              </div>
-              <div data-id="MV" className="text-2xl font-black text-foreground">{missedSearches.toLocaleString()}</div>
-              <div className="text-xs font-semibold text-muted-foreground">Missed searches/mo</div>
-            </CardContent>
-          </Card>
-          <Card data-id="KK" className="border-2 border-border bg-card shadow-md">
-            <CardContent className="p-4 text-center">
-              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-500/30">
-                <Target className="h-6 w-6" />
-              </div>
-              <div data-id="MK" className="text-2xl font-black text-foreground">+{missingKeywords}</div>
-              <div className="text-xs font-semibold text-muted-foreground">Missing keywords</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {biggestOpportunity && (
-          <Card data-id="TO" className="border-2 border-primary/30 bg-primary/5 shadow-md animate-fade-in-up animation-delay-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/30">
-                  <TrendingUp className="h-6 w-6" />
-                </div>
-                <div>
-                  <p data-id="TL" className="text-xs font-semibold text-primary uppercase tracking-wide">Top Opportunity</p>
-                  <p data-id="TK" className="text-lg font-black text-foreground">&ldquo;{biggestOpportunity.keyword}&rdquo;</p>
-                  <p data-id="TV" className="text-xs text-muted-foreground font-medium">
-                    {biggestOpportunity.volume.toLocaleString()} monthly searches
-                    {biggestOpportunity.yourRank
-                      ? ` - You're #${biggestOpportunity.yourRank}`
-                      : ' - You\'re not ranking'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+        {/* Head-to-head competitor comparison — Cialdini: social comparison */}
         {comp && (
           <Card data-id="CC" className="border-2 border-border bg-card shadow-lg animate-fade-in-up animation-delay-300">
             <CardHeader data-id="CH" className="pb-2 px-5 pt-5">
               <CardTitle className="text-sm font-black flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-amber-500" />
-                vs Top Local Competitor
+                You vs. {compName}
               </CardTitle>
+              <p className="text-xs text-muted-foreground font-medium">
+                Your top-ranked competitor in {businessData.city}
+              </p>
             </CardHeader>
             <CardContent data-id="CB" className="p-5 pt-2 space-y-3">
-              <div data-id="CN" className="flex justify-between items-center pb-2 border-b border-border">
-                <span data-id="CY" className="text-sm font-bold text-muted-foreground truncate max-w-[45%]">{you.name}</span>
-                <span data-id="CX" className="text-sm font-bold text-primary truncate max-w-[45%]">{compName}</span>
+              <div data-id="CN" className="grid grid-cols-3 gap-2 pb-2 border-b border-border text-center">
+                <span className="text-xs font-bold text-muted-foreground truncate">You</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"></span>
+                <span className="text-xs font-bold text-primary truncate">{compName.split(' ').slice(0, 2).join(' ')}</span>
               </div>
               
               {[
-                { label: 'Rating', yours: you.rating, theirs: comp.rating, icon: Star, format: (v: number) => v.toFixed(1) },
-                { label: 'Reviews', yours: you.reviewCount, theirs: comp.reviewCount, icon: Star, format: (v: number) => v.toString() },
-                { label: 'Photos', yours: you.photoCount, theirs: comp.photoCount, icon: ImageIcon, format: (v: number) => v.toString() },
-              ].map((metric, i) => {
-                const maxVal = Math.max(metric.yours, metric.theirs, 1)
+                { label: 'Rating', yours: you.rating, theirs: comp.rating, format: (v: number) => v.toFixed(1), icon: Star },
+                { label: 'Reviews', yours: you.reviewCount, theirs: comp.reviewCount, format: (v: number) => v.toString(), icon: Star },
+                { label: 'Photos', yours: you.photoCount, theirs: comp.photoCount, format: (v: number) => v.toString(), icon: ImageIcon },
+              ].map((metric) => {
                 const youWinning = metric.yours >= metric.theirs
                 return (
-                  <div key={i} data-id={`C${i}`} className="flex items-center gap-3">
-                    <metric.icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1">
-                      <div className="flex justify-between text-xs font-bold mb-1">
-                        <span className={youWinning ? 'text-green-500' : 'text-red-500'}>{metric.format(metric.yours)}</span>
-                        <span className="text-muted-foreground">{metric.label}</span>
-                        <span className={!youWinning ? 'text-green-500' : 'text-red-500'}>{metric.format(metric.theirs)}</span>
-                      </div>
-                      <div className="flex h-1.5 gap-1">
-                        <div className="flex-1 bg-muted rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${youWinning ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${(metric.yours / maxVal) * 100}%` }}></div>
-                        </div>
-                        <div className="flex-1 bg-muted rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${!youWinning ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${(metric.theirs / maxVal) * 100}%` }}></div>
-                        </div>
-                      </div>
-                    </div>
+                  <div key={metric.label} className="grid grid-cols-3 gap-2 items-center text-center">
+                    <span className={cn(
+                      'text-lg font-black',
+                      youWinning ? 'text-green-600' : 'text-red-500'
+                    )}>
+                      {metric.format(metric.yours)}
+                    </span>
+                    <span className="text-xs font-bold text-muted-foreground">{metric.label}</span>
+                    <span className={cn(
+                      'text-lg font-black',
+                      !youWinning ? 'text-green-600' : 'text-red-500'
+                    )}>
+                      {metric.format(metric.theirs)}
+                    </span>
                   </div>
                 )
               })}
@@ -173,30 +160,63 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
           </Card>
         )}
 
-        {comparison.aiSummary && (
-          <Card data-id="AI" className="border-2 border-primary/30 bg-primary/5 shadow-md animate-fade-in-up animation-delay-400">
-            <CardContent data-id="AC" className="p-4">
-              <p data-id="AL" className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">AI Analysis</p>
-              <p data-id="AT" className="text-sm text-foreground font-medium leading-relaxed">
-                {comparison.aiSummary}
-              </p>
+        {/* Top keyword opportunity — Kennedy: specificity sells */}
+        {biggestOpportunity && (
+          <Card data-id="TO" className="border-2 border-primary/30 bg-primary/5 shadow-md animate-fade-in-up animation-delay-400">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/30 shrink-0">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <div>
+                  <p data-id="TL" className="text-xs font-bold text-primary uppercase tracking-wide">Biggest opportunity</p>
+                  <p data-id="TK" className="text-lg font-black text-foreground">&ldquo;{biggestOpportunity.keyword}&rdquo;</p>
+                  <p data-id="TV" className="text-xs text-muted-foreground font-medium">
+                    {biggestOpportunity.volume.toLocaleString()} people search this monthly
+                    {biggestOpportunity.yourRank
+                      ? ` — you're #${biggestOpportunity.yourRank}`
+                      : ' — you don\'t rank at all'}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
 
-        <Button 
-          data-id="CA"
-          onClick={onNext} 
-          className="w-full h-14 text-lg font-black rounded-xl shadow-xl shadow-primary/40 animate-pulse-glow animate-fade-in-up animation-delay-500"
-        >
-          <Zap className="mr-2 h-5 w-5" />
-          See How to Fix This
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+        {/* AI analysis — authority signal */}
+        {comparison.aiSummary && (
+          <Card data-id="AI" className="border-2 border-border bg-card shadow-md animate-fade-in-up animation-delay-500">
+            <CardContent data-id="AC" className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 shrink-0 mt-0.5">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">AI Assessment</p>
+                  <p data-id="AT" className="text-sm text-foreground font-medium leading-relaxed">
+                    {comparison.aiSummary}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        <p data-id="UG" className="text-center text-xs font-semibold text-muted-foreground animate-fade-in-up animation-delay-500">
-          Your competitors are getting these leads <span className="text-destructive">right now</span>
-        </p>
+        {/* CTA — urgency + curiosity bridge */}
+        <div data-id="CA" className="space-y-2 animate-fade-in-up animation-delay-600 pt-1">
+          <Button 
+            onClick={onNext} 
+            className="w-full h-14 text-lg font-black rounded-xl shadow-xl shadow-primary/40 animate-pulse-glow"
+          >
+            <Zap className="mr-2 h-5 w-5" />
+            Show Me How to Fix This
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+
+          <p data-id="UG" className="text-center text-xs font-semibold text-red-500 animate-urgency">
+            Every day you wait, your competitor gets these leads instead
+          </p>
+        </div>
       </div>
     </div>
   )
