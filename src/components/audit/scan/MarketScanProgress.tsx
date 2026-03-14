@@ -62,24 +62,15 @@ export default function MarketScanProgress({
         </div>
       </div>
 
-      {/* Step checklist */}
+      {/* Step checklist — only show completed + current active step */}
       <div className="mx-auto mt-6 flex max-w-xs flex-col items-start gap-2">
-        {STEPS.map((label, i) => {
+        {STEPS.slice(0, completedSteps + 1).map((label, i) => {
           const done = i < completedSteps;
-          const active = i === completedSteps;
           return (
             <div
               key={label}
-              className={`flex items-center gap-2.5 transition-all duration-500 ${
-                done
-                  ? "opacity-100"
-                  : active
-                    ? "opacity-100"
-                    : "opacity-0 translate-y-1"
-              }`}
-              style={{
-                transitionDelay: `${i * 80}ms`,
-              }}
+              className="flex items-center gap-2.5"
+              style={{ animation: "stepIn 0.4s ease-out" }}
             >
               {done ? (
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white">
@@ -87,21 +78,15 @@ export default function MarketScanProgress({
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </span>
-              ) : active ? (
+              ) : (
                 <span className="relative flex h-5 w-5 items-center justify-center">
                   <span className="absolute h-5 w-5 animate-ping rounded-full bg-primary-200" />
                   <span className="relative h-2.5 w-2.5 rounded-full bg-primary-500" />
                 </span>
-              ) : (
-                <span className="h-5 w-5 rounded-full border-2 border-slate-200" />
               )}
               <span
                 className={`text-sm ${
-                  done
-                    ? "font-medium text-slate-700"
-                    : active
-                      ? "font-medium text-primary-600"
-                      : "text-slate-400"
+                  done ? "font-medium text-slate-700" : "font-medium text-primary-600"
                 }`}
               >
                 {label}
@@ -110,6 +95,13 @@ export default function MarketScanProgress({
           );
         })}
       </div>
+
+      <style jsx>{`
+        @keyframes stepIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

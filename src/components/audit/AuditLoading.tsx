@@ -244,16 +244,13 @@ export default function AuditLoading({
 
   return (
     <div className="mx-auto max-w-xl">
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* 1. Progress Section */}
         <MarketScanProgress
           businessName={businessName}
           city={city}
           progress={progress}
         />
-
-        {/* Divider */}
-        <div className="mx-auto h-px w-16 bg-slate-200" />
 
         {/* 2. Business Profile Card */}
         <BusinessProfileCard
