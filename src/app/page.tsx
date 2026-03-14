@@ -7,7 +7,6 @@ import { StepBusinessScan } from '@/components/funnel/step-business-scan'
 import { StepMarketScan } from '@/components/funnel/step-market-scan'
 import { StepResults } from '@/components/funnel/step-results'
 import { StepChooseOption } from '@/components/funnel/step-choose-option'
-import { ReviewsSection } from '@/components/reviews-section'
 import { useRouter } from 'next/navigation'
 
 type FunnelStep = 1 | 2 | 3 | 4
@@ -66,9 +65,6 @@ export default function FunnelPage() {
           <StepChooseOption onSelectDIY={handleSelectDIY} onSelectAI={handleSelectAI} />
         )}
       </main>
-
-      {/* Reviews Section */}
-      <ReviewsSection />
 
       {/* Footer */}
       <footer className="border-t-2 border-border bg-background py-6">
