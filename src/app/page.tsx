@@ -46,17 +46,15 @@ export default function FunnelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex h-16 items-center justify-between px-5 sm:h-[72px] sm:px-6">
+    <div data-id="PG" className="min-h-screen bg-background">
+      <header data-id="HD" className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div data-id="HI" className="flex h-16 items-center justify-between px-5 sm:h-[72px] sm:px-6">
           <Logo size="md" />
           <ProgressSteps currentStep={currentStep} totalSteps={4} />
         </div>
       </header>
 
-      {/* Main content */}
-      <main>
+      <main data-id="MN">
         {currentStep === 1 && <StepBusinessScan onNext={handleStep1Complete} />}
         {currentStep === 2 && businessData && (
           <StepMarketScan businessData={businessData} onComplete={handleStep2Complete} />
@@ -69,10 +67,9 @@ export default function FunnelPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t-2 border-border bg-background py-6">
-        <div className="mx-auto max-w-4xl px-5 text-center sm:px-6">
-          <p className="text-sm font-semibold text-muted-foreground">
+      <footer data-id="FT" className="border-t-2 border-border bg-background py-6">
+        <div data-id="FC" className="mx-auto max-w-4xl px-5 text-center sm:px-6">
+          <p data-id="FP" className="text-sm font-semibold text-muted-foreground">
             Paint &amp; Profits - Marketing for Painters
           </p>
         </div>

@@ -113,14 +113,15 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
 
   if (error) {
     return (
-      <div className="flex min-h-[calc(100vh-56px)] flex-col items-center justify-center px-4 py-6 sm:min-h-[calc(100vh-64px)]">
-        <div className="mx-auto w-full max-w-md text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+      <div data-id="ER" className="flex min-h-[calc(100vh-56px)] flex-col items-center justify-center px-4 py-6 sm:min-h-[calc(100vh-64px)]">
+        <div data-id="EW" className="mx-auto w-full max-w-md text-center space-y-4">
+          <div data-id="EI" className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
             <AlertCircle className="h-8 w-8 text-destructive" />
           </div>
-          <h2 className="text-xl font-black text-foreground">Scan Failed</h2>
-          <p className="text-sm text-muted-foreground font-medium">{error}</p>
+          <h2 data-id="ET" className="text-xl font-black text-foreground">Scan Failed</h2>
+          <p data-id="EM" className="text-sm text-muted-foreground font-medium">{error}</p>
           <Button
+            data-id="EB"
             onClick={() => window.location.reload()}
             variant="outline"
             className="border-2 font-bold"
@@ -133,16 +134,14 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-10">
-      <div className="mx-auto w-full max-w-md flex-1 flex flex-col justify-center">
+    <div data-id="S2" className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-10">
+      <div data-id="MW" className="mx-auto w-full max-w-md flex-1 flex flex-col justify-center">
         
-        {/* Animated Scanner Icon */}
-        <div className="text-center mb-6">
-          <div className="relative mx-auto h-24 w-24">
+        <div data-id="SI" className="text-center mb-6">
+          <div data-id="SP" className="relative mx-auto h-24 w-24">
             <div className="absolute inset-0 rounded-full border-4 border-primary/30 animate-ping"></div>
             <div className="absolute inset-2 rounded-full border-4 border-primary/40 animate-ping animation-delay-200"></div>
             <div className="absolute inset-4 rounded-full border-4 border-primary/50 animate-ping animation-delay-400"></div>
-            
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-xl shadow-primary/40">
                 <Loader2 className="h-8 w-8 text-white animate-spin" />
@@ -151,30 +150,27 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
           </div>
         </div>
 
-        {/* Header */}
-        <div className="space-y-2 text-center mb-6">
-          <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+        <div data-id="MH" className="space-y-2 text-center mb-6">
+          <h1 data-id="MT" className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
             AI scanning your market
           </h1>
-          <p className="text-muted-foreground font-semibold">
+          <p data-id="MS" className="text-muted-foreground font-semibold">
             Analyzing the {businessData.city} painting market
           </p>
         </div>
 
-        {/* Live Stats Counter */}
-        <div className="bg-muted/50 rounded-xl p-4 mb-6 text-center">
-          <div className="text-3xl font-black text-primary mb-1 transition-all">
+        <div data-id="LS" className="bg-muted/50 rounded-xl p-4 mb-6 text-center">
+          <div data-id="LV" className="text-3xl font-black text-primary mb-1 transition-all">
             {liveStats[currentStat].value.toLocaleString()}
           </div>
-          <div className="text-sm font-semibold text-muted-foreground">
+          <div data-id="LL" className="text-sm font-semibold text-muted-foreground">
             {liveStats[currentStat].label}
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="space-y-2 mb-6">
+        <div data-id="PB" className="space-y-2 mb-6">
           <Progress value={progress} className="h-3 rounded-full" />
-          <div className="flex justify-between text-sm font-bold">
+          <div data-id="PL" className="flex justify-between text-sm font-bold">
             <span className="text-muted-foreground">
               {progress >= 90 && !apiDone ? 'Finalizing...' : 'Scanning...'}
             </span>
@@ -182,8 +178,7 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
           </div>
         </div>
 
-        {/* Discoveries */}
-        <div className="space-y-2 mb-6">
+        <div data-id="DL" className="space-y-2 mb-6">
           {discoverySteps.map((discovery, index) => {
             const isCompleted = completedSteps.includes(index)
             const Icon = discovery.icon
@@ -191,6 +186,7 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
             return (
               <div
                 key={index}
+                data-id={`D${index}`}
                 className={cn(
                   'flex items-center gap-3 rounded-xl border bg-card px-4 py-3 transition-all duration-300',
                   isCompleted 
@@ -222,16 +218,15 @@ export function StepMarketScan({ businessData, onComplete }: StepMarketScanProps
           })}
         </div>
 
-        {/* Business card */}
-        <Card className="border-2 border-border bg-card shadow-md">
-          <CardContent className="p-4">
+        <Card data-id="BC" className="border-2 border-border bg-card shadow-md">
+          <CardContent data-id="BD" className="p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 shrink-0">
                 <Building className="h-6 w-6 text-primary" />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-foreground truncate">{businessData.businessName}</h3>
-                <p className="text-xs font-semibold text-muted-foreground truncate">{businessData.city} - Painting Contractor</p>
+                <h3 data-id="BB" className="font-bold text-foreground truncate">{businessData.businessName}</h3>
+                <p data-id="BL" className="text-xs font-semibold text-muted-foreground truncate">{businessData.city} - Painting Contractor</p>
               </div>
             </div>
           </CardContent>
