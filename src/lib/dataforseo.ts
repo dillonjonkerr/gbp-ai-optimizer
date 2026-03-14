@@ -273,7 +273,7 @@ export async function runMarketScan(
   for (const c of allCompetitors) {
     competitorCounts.set(c, (competitorCounts.get(c) ?? 0) + 1);
   }
-  const topCompetitors = [...competitorCounts.entries()]
+  const topCompetitors = Array.from(competitorCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([name]) => name);
