@@ -112,6 +112,8 @@
   animation: discoverIn 0.5s ease-out;
 }
 
+.h-13 { height: 3.25rem; }
+
 .animation-delay-100 { animation-delay: 100ms; }
 .animation-delay-200 { animation-delay: 200ms; }
 .animation-delay-300 { animation-delay: 300ms; }

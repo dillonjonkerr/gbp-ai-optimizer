@@ -17,9 +17,9 @@ interface FacebookReviewsWidgetProps {
 
 export function FacebookReviewsWidget({ className }: FacebookReviewsWidgetProps) {
   return (
-    <div className={className}>
+    <div data-id="FW" className={className}>
       <div className="mb-3 flex items-center justify-center gap-2">
-        <FacebookIcon className="h-4 w-4" />
+        <FacebookIcon className="h-5 w-5" />
         <div className="flex items-center gap-0.5">
           {[1, 2, 3, 4, 5].map((i) => (
             <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -27,7 +27,7 @@ export function FacebookReviewsWidget({ className }: FacebookReviewsWidgetProps)
         </div>
         <span className="text-xs font-bold text-foreground">4.9</span>
         <span className="text-xs text-muted-foreground font-semibold">
-          200+ verified reviews
+          200+ Facebook reviews
         </span>
       </div>
 
