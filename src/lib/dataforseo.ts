@@ -307,35 +307,43 @@ export async function runMarketScan(
   const seeds = await getSearchVolumes(aiKeywords, city);
   console.log("[dataforseo] Keywords with volumes:", seeds.map((s) => `${s.keyword} (${s.volume})`));
 
-  // Step 3 — SERP rankings for each keyword (sequential to avoid rate limits)
+  // Step 3 — SERP rankings in parallel batches of 5 for speed
   const allCompetitors: string[] = [];
   const keywords: MarketKeyword[] = [];
+  const BATCH_SIZE = 5;
 
-  for (const seed of seeds) {
-    try {
-      const serp = await getSerpRankings(seed.keyword, city, businessName);
-      const missed = calcMissedTraffic(seed.volume, serp.myRank);
+  for (let i = 0; i < seeds.length; i += BATCH_SIZE) {
+    const batch = seeds.slice(i, i + BATCH_SIZE);
+    const results = await Promise.allSettled(
+      batch.map((seed) => getSerpRankings(seed.keyword, city, businessName)),
+    );
 
-      keywords.push({
-        keyword: seed.keyword,
-        volume: seed.volume,
-        myRank: serp.myRank,
-        competitorRank: serp.competitorRank,
-        topCompetitor: serp.topCompetitor,
-        missedTraffic: missed,
-      });
+    for (let j = 0; j < batch.length; j++) {
+      const seed = batch[j]!;
+      const result = results[j]!;
 
-      allCompetitors.push(...serp.topCompetitors);
-    } catch (err) {
-      console.warn(`[dataforseo] SERP failed for "${seed.keyword}":`, err);
-      keywords.push({
-        keyword: seed.keyword,
-        volume: seed.volume,
-        myRank: null,
-        competitorRank: 1,
-        topCompetitor: "Unknown",
-        missedTraffic: calcMissedTraffic(seed.volume, null),
-      });
+      if (result.status === "fulfilled") {
+        const serp = result.value;
+        keywords.push({
+          keyword: seed.keyword,
+          volume: seed.volume,
+          myRank: serp.myRank,
+          competitorRank: serp.competitorRank,
+          topCompetitor: serp.topCompetitor,
+          missedTraffic: calcMissedTraffic(seed.volume, serp.myRank),
+        });
+        allCompetitors.push(...serp.topCompetitors);
+      } else {
+        console.warn(`[dataforseo] SERP failed for "${seed.keyword}":`, result.reason);
+        keywords.push({
+          keyword: seed.keyword,
+          volume: seed.volume,
+          myRank: null,
+          competitorRank: 1,
+          topCompetitor: "Unknown",
+          missedTraffic: calcMissedTraffic(seed.volume, null),
+        });
+      }
     }
   }
 

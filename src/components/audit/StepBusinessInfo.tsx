@@ -4,6 +4,60 @@ import { useState, FormEvent } from "react";
 import { INDUSTRIES, type BusinessInfo } from "@/lib/types";
 import PlaceAutocomplete from "./PlaceAutocomplete";
 
+const TYPE_TO_INDUSTRY: Record<string, string> = {
+  painter: "Painter",
+  painting_contractor: "Painter",
+  roofing_contractor: "Roofer",
+  plumber: "Plumber",
+  plumbing_contractor: "Plumber",
+  hvac_contractor: "HVAC",
+  air_conditioning_contractor: "HVAC",
+  heating_contractor: "HVAC",
+  general_contractor: "Remodeler",
+  home_improvement_store: "Remodeler",
+  remodeler: "Remodeler",
+  landscaper: "Landscaper",
+  landscaping: "Landscaper",
+  lawn_care_service: "Landscaper",
+  garden_center: "Landscaper",
+  electrician: "Electrician",
+  electrical_contractor: "Electrician",
+  flooring_store: "Flooring",
+  flooring_contractor: "Flooring",
+  floor: "Flooring",
+  window_installation_service: "Window Installer",
+  window: "Window Installer",
+  glass: "Window Installer",
+};
+
+const NAME_KEYWORDS: [RegExp, string][] = [
+  [/paint/i, "Painter"],
+  [/roof/i, "Roofer"],
+  [/plumb/i, "Plumber"],
+  [/hvac|heat|cool|air.?condition/i, "HVAC"],
+  [/remodel|renovation|construction|contractor/i, "Remodeler"],
+  [/landscape|lawn|garden/i, "Landscaper"],
+  [/electric/i, "Electrician"],
+  [/floor/i, "Flooring"],
+  [/window|glass/i, "Window Installer"],
+];
+
+function detectIndustry(types: string[], businessName?: string): string | null {
+  for (const t of types) {
+    if (TYPE_TO_INDUSTRY[t]) return TYPE_TO_INDUSTRY[t];
+  }
+  const joined = types.join(" ");
+  for (const [keyword, industry] of Object.entries(TYPE_TO_INDUSTRY)) {
+    if (joined.includes(keyword)) return industry;
+  }
+  if (businessName) {
+    for (const [pattern, industry] of NAME_KEYWORDS) {
+      if (pattern.test(businessName)) return industry;
+    }
+  }
+  return null;
+}
+
 export default function StepBusinessInfo({
   initial,
   loading,
@@ -22,12 +76,12 @@ export default function StepBusinessInfo({
   function handlePlaceSelect(prediction: {
     mainText: string;
     secondaryText: string;
+    types?: string[];
   }) {
     setBusinessName(prediction.mainText);
-    // Auto-fill city from the secondary text (e.g. "Sandy, UT, USA")
-    if (prediction.secondaryText && !city) {
+
+    if (prediction.secondaryText) {
       const parts = prediction.secondaryText.split(",").map((s) => s.trim());
-      // Typically: "City, State, Country" or "Address, City, State, Country"
       if (parts.length >= 2) {
         const cityPart = parts.length >= 3 ? parts[parts.length - 3] : parts[0];
         const statePart = parts[parts.length - 2];
@@ -36,6 +90,9 @@ export default function StepBusinessInfo({
         }
       }
     }
+
+    const detected = detectIndustry(prediction.types ?? [], prediction.mainText);
+    if (detected) setIndustry(detected);
   }
 
   function handleSubmit(e: FormEvent) {

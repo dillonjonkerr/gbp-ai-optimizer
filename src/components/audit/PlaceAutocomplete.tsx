@@ -7,6 +7,7 @@ type Prediction = {
   description: string;
   mainText: string;
   secondaryText: string;
+  types?: string[];
 };
 
 export default function PlaceAutocomplete({

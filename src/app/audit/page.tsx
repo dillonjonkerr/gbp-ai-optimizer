@@ -9,6 +9,7 @@ import StepMarketScan from "@/components/audit/StepMarketScan";
 import StepComparison from "@/components/audit/StepComparison";
 import StepCTA from "@/components/audit/StepCTA";
 import StepOptimize from "@/components/audit/StepOptimize";
+import AuditLoading from "@/components/audit/AuditLoading";
 
 const STEPS = [
   { label: "Business Info" },
@@ -84,12 +85,18 @@ export default function AuditPage() {
 
       {/* Step content */}
       <main className="mx-auto max-w-4xl px-6 py-10">
-        {step === 0 && (
+        {step === 0 && !loading && (
           <StepBusinessInfo
             initial={businessInfo}
             loading={loading}
             error={error}
             onSubmit={runAudit}
+          />
+        )}
+        {step === 0 && loading && (
+          <AuditLoading
+            businessName={businessInfo.businessName}
+            city={businessInfo.city}
           />
         )}
         {step === 1 && auditResult && (

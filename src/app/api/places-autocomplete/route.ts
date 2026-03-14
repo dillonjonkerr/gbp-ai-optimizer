@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
     (p: {
       place_id: string;
       description: string;
+      types?: string[];
       structured_formatting?: {
         main_text?: string;
         secondary_text?: string;
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
       description: p.description,
       mainText: p.structured_formatting?.main_text ?? p.description,
       secondaryText: p.structured_formatting?.secondary_text ?? "",
+      types: p.types ?? [],
     }),
   );
 
