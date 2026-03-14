@@ -77,7 +77,63 @@ export default function StepConvert({
 
       {/* Two options */}
       <div className="grid gap-6 sm:grid-cols-2">
-        {/* Option A: DIY PDF */}
+        {/* Option A: AI Implementation (Free, Recommended) */}
+        <div className="relative flex flex-col rounded-2xl border-2 border-primary-500 bg-white p-8 shadow-lg">
+          <div className="absolute -top-3 right-6 rounded-full bg-primary-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+            Recommended
+          </div>
+
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-2xl">
+            🤖
+          </div>
+
+          <h2 className="mt-5 text-xl font-bold text-slate-900">
+            Let AI Fix It For You
+          </h2>
+
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            Connect your Google Business Profile and let our AI implement every
+            optimization automatically. We push changes live so you start
+            ranking faster.
+          </p>
+
+          <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
+            {[
+              "Full keyword gap analysis",
+              "AI writes your business description",
+              "Auto-publish optimized posts",
+              "AI-generated review responses",
+              "Q&A entries added automatically",
+              "Monthly ranking monitoring",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs text-primary-600">
+                  ✓
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-auto pt-6">
+            <div className="mb-3 text-center">
+              <span className="text-2xl font-bold text-emerald-600">Free</span>
+            </div>
+            <button
+              onClick={() => {
+                /* TODO: Connect GBP OAuth flow */
+              }}
+              className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            >
+              Connect My Google Profile
+            </button>
+            <p className="mt-2 text-center text-xs text-slate-400">
+              No credit card required
+            </p>
+          </div>
+        </div>
+
+        {/* Option B: DIY PDF ($9.99) */}
         <div className="flex flex-col rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-sm transition hover:border-slate-300 hover:shadow-md">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
             📄
@@ -112,7 +168,8 @@ export default function StepConvert({
 
           <div className="mt-auto pt-6">
             <div className="mb-3 text-center">
-              <span className="text-2xl font-bold text-slate-900">Free</span>
+              <span className="text-2xl font-bold text-slate-900">$9.99</span>
+              <span className="text-sm text-slate-400"> one-time</span>
             </div>
             <button
               onClick={handleDownloadPDF}
@@ -128,63 +185,6 @@ export default function StepConvert({
                 "Download Report"
               )}
             </button>
-          </div>
-        </div>
-
-        {/* Option B: AI Implementation */}
-        <div className="relative flex flex-col rounded-2xl border-2 border-primary-500 bg-white p-8 shadow-lg">
-          <div className="absolute -top-3 right-6 rounded-full bg-primary-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
-            Recommended
-          </div>
-
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-2xl">
-            🤖
-          </div>
-
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
-            Let AI Fix It For You
-          </h2>
-
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">
-            Connect your Google Business Profile and let our AI implement every
-            optimization automatically. We push changes live so you start
-            ranking faster.
-          </p>
-
-          <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
-            {[
-              "Everything in the free report",
-              "AI writes your business description",
-              "Auto-publish optimized posts",
-              "AI-generated review responses",
-              "Q&A entries added automatically",
-              "Monthly ranking monitoring",
-            ].map((item) => (
-              <li key={item} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs text-primary-600">
-                  ✓
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-auto pt-6">
-            <div className="mb-3 text-center">
-              <span className="text-2xl font-bold text-slate-900">$99</span>
-              <span className="text-sm text-slate-400">/month</span>
-            </div>
-            <button
-              onClick={() => {
-                /* TODO: Connect GBP OAuth flow */
-              }}
-              className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-            >
-              Connect My Google Profile
-            </button>
-            <p className="mt-2 text-center text-xs text-slate-400">
-              7-day free trial · Cancel anytime
-            </p>
           </div>
         </div>
       </div>
