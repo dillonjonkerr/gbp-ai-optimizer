@@ -93,7 +93,7 @@ export default function PlaceAutocomplete({
 
   return (
     <div ref={containerRef} className="relative">
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-medium text-foreground mb-1.5">
         {label}
       </label>
       <input
@@ -110,13 +110,13 @@ export default function PlaceAutocomplete({
         aria-expanded={open}
         aria-autocomplete="list"
         aria-controls={`${id}-listbox`}
-        className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+        className="block w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       />
       {open && predictions.length > 0 && (
         <ul
           id={`${id}-listbox`}
           role="listbox"
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5"
+          className="absolute z-50 mt-2 max-h-60 w-full overflow-auto rounded-lg border border-border bg-card py-1 shadow-lg"
         >
           {predictions.map((p, i) => (
             <li
@@ -127,13 +127,13 @@ export default function PlaceAutocomplete({
               onMouseEnter={() => setActiveIdx(i)}
               className={`cursor-pointer px-4 py-2.5 text-sm transition ${
                 i === activeIdx
-                  ? "bg-primary-50 text-primary-700"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground hover:bg-muted"
               }`}
             >
               <span className="font-medium">{p.mainText}</span>
               {p.secondaryText && (
-                <span className="ml-1.5 text-slate-400">
+                <span className="ml-1.5 text-muted-foreground">
                   {p.secondaryText}
                 </span>
               )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { BusinessInfo, AuditResult } from "@/lib/types";
 import StepProgress from "@/components/audit/StepProgress";
 import StepBusinessInfo from "@/components/audit/StepBusinessInfo";
@@ -10,8 +11,8 @@ import StepConvert from "@/components/audit/StepConvert";
 import AuditLoading from "@/components/audit/AuditLoading";
 
 const STEPS = [
-  { label: "Business Info" },
-  { label: "Gap Analysis" },
+  { label: "Scan" },
+  { label: "Results" },
   { label: "Fix It" },
 ];
 
@@ -54,30 +55,29 @@ export default function AuditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30">
-      <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-4xl items-center px-6">
-          <div className="flex items-center gap-2.5">
+    <div className="min-h-screen bg-background">
+      {/* Minimal header for funnel */}
+      <header className="border-b border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
+          <Link href="/" className="flex items-center gap-2.5">
             <Image
               src="/brand/icon.png"
-              alt="Paint & Profits"
-              width={44}
-              height={44}
-              className="h-11 w-11"
+              alt="GBP AI Optimizer"
+              width={32}
+              height={32}
+              className="h-8 w-8"
               priority
             />
-            <span className="text-lg font-bold tracking-tight text-slate-900">
-              Paint <span className="text-primary-500">&amp;</span> Profits
+            <span className="text-base font-semibold tracking-tight text-foreground">
+              GBP AI Optimizer
             </span>
-          </div>
+          </Link>
+          <StepProgress steps={STEPS} current={step} />
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-6 pt-8">
-        <StepProgress steps={STEPS} current={step} />
-      </div>
-
-      <main className="mx-auto max-w-4xl px-6 py-10">
+      {/* Main funnel content - centered */}
+      <main className="mx-auto max-w-3xl px-6 py-12">
         {step === 0 && !loading && (
           <StepBusinessInfo
             initial={businessInfo}

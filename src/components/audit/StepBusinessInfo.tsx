@@ -105,92 +105,137 @@ export default function StepBusinessInfo({
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-          Let&apos;s audit your Google Business Profile
+    <div className="mx-auto max-w-lg">
+      {/* AI Assistant visual */}
+      <div className="mb-8 text-center">
+        <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center">
+          {/* Glow rings */}
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-ring" />
+          <div className="absolute inset-2 rounded-full bg-primary/10" />
+          {/* Core */}
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-card border border-border ai-glow">
+            <svg
+              className="h-7 w-7 text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl text-balance">
+          Let&apos;s scan your Google Business Profile
         </h1>
-        <p className="mt-3 text-base text-slate-500">
-          Tell us about your business and we&apos;ll scan your local market,
-          analyze your profile, and show you exactly how to rank higher.
+        <p className="mt-3 text-muted-foreground leading-relaxed">
+          Tell us about your business and our AI will analyze your local market,
+          find keyword gaps, and show you exactly how to outrank competitors.
         </p>
       </div>
 
+      {/* Form card */}
       <form
         onSubmit={handleSubmit}
-        className="mt-10 space-y-5 rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm ring-1 ring-slate-900/5"
+        className="rounded-2xl border border-border bg-card p-6 sm:p-8"
       >
-        <PlaceAutocomplete
-          id="businessName"
-          label="Business name"
-          value={businessName}
-          onChange={setBusinessName}
-          onSelect={handlePlaceSelect}
-          placeholder="Start typing your business name…"
-        />
-        <div>
-          <label
-            htmlFor="city"
-            className="block text-sm font-medium text-slate-700"
-          >
-            Main area / city
-          </label>
-          <input
-            id="city"
-            type="text"
-            required
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="e.g. Sandy, Utah"
-            className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+        <div className="space-y-5">
+          <PlaceAutocomplete
+            id="businessName"
+            label="Business name"
+            value={businessName}
+            onChange={setBusinessName}
+            onSelect={handlePlaceSelect}
+            placeholder="Start typing your business name..."
           />
-        </div>
-        <div>
-          <label
-            htmlFor="industry"
-            className="block text-sm font-medium text-slate-700"
-          >
-            Business category
-          </label>
-          <select
-            id="industry"
-            required
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-          >
-            <option value="">Select your industry</option>
-            {INDUSTRIES.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
+
+          <div>
+            <label
+              htmlFor="city"
+              className="block text-sm font-medium text-foreground mb-1.5"
+            >
+              City / Service Area
+            </label>
+            <input
+              id="city"
+              type="text"
+              required
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="e.g. Austin, Texas"
+              className="block w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground placeholder-muted-foreground transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="industry"
+              className="block text-sm font-medium text-foreground mb-1.5"
+            >
+              Primary Category
+            </label>
+            <select
+              id="industry"
+              required
+              value={industry}
+              onChange={(e) => setIndustry(e.target.value)}
+              className="block w-full rounded-lg border border-border bg-background px-4 py-3 text-foreground transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="">Select your industry</option>
+              {INDUSTRIES.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {error && (
-          <p className="text-sm text-rose-600" role="alert">
-            {error}
-          </p>
+          <div className="mt-4 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3">
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          </div>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
+          className="mt-6 w-full rounded-lg bg-foreground px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-60 disabled:pointer-events-none"
         >
           {loading ? (
             <span className="inline-flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Scanning your market…
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+              Scanning your market...
             </span>
           ) : (
-            "Scan My Business"
+            <span className="inline-flex items-center gap-2">
+              Scan My Business
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                />
+              </svg>
+            </span>
           )}
         </button>
 
-        <p className="text-center text-xs text-slate-400">
-          Free audit — no credit card required
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          Free audit - No credit card required
         </p>
       </form>
     </div>

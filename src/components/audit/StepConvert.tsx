@@ -49,55 +49,58 @@ export default function StepConvert({
     <div className="space-y-10">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/60 px-3 py-1 text-xs font-semibold text-emerald-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-success/20 bg-success/5 px-4 py-1.5 text-xs font-medium text-success mb-6">
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
           Analysis Complete
         </div>
 
-        <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-          How do you want to
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl text-balance">
+          Choose how you want to
           <br />
-          <span className="text-primary-600">fix your rankings?</span>
+          <span className="text-primary">fix your rankings</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-500">
+        <p className="mx-auto mt-4 max-w-lg text-muted-foreground leading-relaxed">
           We found{" "}
-          <span className="font-semibold text-rose-600">
+          <span className="font-semibold text-destructive">
             {gapCount} keyword gaps
           </span>{" "}
           where{" "}
-          <span className="font-medium text-slate-700">{competitor}</span> is
+          <span className="font-medium text-foreground">{competitor}</span> is
           outranking you, costing you an estimated{" "}
-          <span className="font-semibold text-rose-600">
+          <span className="font-semibold text-destructive">
             {missedTraffic.toLocaleString()} searches/month
           </span>
-          . Choose how you want to fix it.
+          .
         </p>
       </div>
 
       {/* Two options */}
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Option A: AI Implementation (Free, Recommended) */}
-        <div className="relative flex flex-col rounded-2xl border-2 border-primary-500 bg-white p-8 shadow-lg">
-          <div className="absolute -top-3 right-6 rounded-full bg-primary-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+        <div className="relative flex flex-col rounded-xl border-2 border-primary bg-card p-6 sm:p-8">
+          <div className="absolute -top-3 right-6 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
             Recommended
           </div>
 
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-2xl">
-            🤖
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+            </svg>
           </div>
 
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
-            Let AI Fix It For You
+          <h2 className="mt-5 text-xl font-bold text-foreground">
+            AI Assisted Optimization
           </h2>
 
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">
-            Connect your Google Business Profile and let our AI implement every
-            optimization automatically. We push changes live so you start
-            ranking faster.
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Connect your Google Business Profile and let AI guide and write the
+            improvements. We push changes live so you start ranking faster.
           </p>
 
-          <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
+          <ul className="mt-5 space-y-2.5 text-sm text-foreground/80">
             {[
               "Full keyword gap analysis",
               "AI writes your business description",
@@ -107,8 +110,10 @@ export default function StepConvert({
               "Monthly ranking monitoring",
             ].map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs text-primary-600">
-                  ✓
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
                 </span>
                 {item}
               </li>
@@ -117,39 +122,40 @@ export default function StepConvert({
 
           <div className="mt-auto pt-6">
             <div className="mb-3 text-center">
-              <span className="text-2xl font-bold text-emerald-600">Free</span>
+              <span className="text-2xl font-bold text-success">Free</span>
             </div>
             <button
               onClick={() => {
                 /* TODO: Connect GBP OAuth flow */
               }}
-              className="w-full rounded-xl bg-primary-600 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="w-full rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
             >
-              Connect My Google Profile
+              Connect My Account
             </button>
-            <p className="mt-2 text-center text-xs text-slate-400">
+            <p className="mt-2 text-center text-xs text-muted-foreground">
               No credit card required
             </p>
           </div>
         </div>
 
-        {/* Option B: DIY PDF ($9.99) */}
-        <div className="flex flex-col rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-sm transition hover:border-slate-300 hover:shadow-md">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
-            📄
+        {/* Option B: DIY PDF */}
+        <div className="flex flex-col rounded-xl border border-border bg-card p-6 transition hover:border-muted-foreground/30 sm:p-8">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+            <svg className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
           </div>
 
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
-            DIY Optimization Guide
+          <h2 className="mt-5 text-xl font-bold text-foreground">
+            DIY Fix Plan
           </h2>
 
-          <p className="mt-2 text-sm leading-relaxed text-slate-500">
-            Download a detailed report with every recommendation, keyword gap,
-            and step-by-step instructions to optimize your Google Business
-            Profile yourself.
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Download a step-by-step PDF audit explaining exactly how to fix your
+            Google Business Profile yourself.
           </p>
 
-          <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
+          <ul className="mt-5 space-y-2.5 text-sm text-foreground/80">
             {[
               "Full keyword gap analysis",
               "Competitor comparison breakdown",
@@ -158,8 +164,10 @@ export default function StepConvert({
               "Priority action items",
             ].map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
-                  ✓
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
                 </span>
                 {item}
               </li>
@@ -168,21 +176,21 @@ export default function StepConvert({
 
           <div className="mt-auto pt-6">
             <div className="mb-3 text-center">
-              <span className="text-2xl font-bold text-slate-900">$9.99</span>
-              <span className="text-sm text-slate-400"> one-time</span>
+              <span className="text-2xl font-bold text-foreground">$9.99</span>
+              <span className="text-sm text-muted-foreground"> one-time</span>
             </div>
             <button
               onClick={handleDownloadPDF}
               disabled={downloading}
-              className="w-full rounded-xl border-2 border-slate-900 bg-white px-6 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-60"
+              className="w-full rounded-lg border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-60"
             >
               {downloading ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-transparent" />
-                  Generating…
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+                  Generating...
                 </span>
               ) : (
-                "Download Report"
+                "Download My Fix Plan"
               )}
             </button>
           </div>
@@ -190,15 +198,15 @@ export default function StepConvert({
       </div>
 
       {/* Quick recap */}
-      <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-6">
-        <h3 className="text-sm font-bold text-amber-800">
+      <div className="rounded-xl border border-warning/20 bg-warning/5 p-6">
+        <h3 className="text-sm font-bold text-warning">
           What happens if you do nothing?
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-amber-900/70">
+        <p className="mt-2 text-sm leading-relaxed text-foreground/70">
           {competitor} will continue capturing{" "}
-          <strong>{missedTraffic.toLocaleString()} searches every month</strong>{" "}
+          <strong className="text-foreground">{missedTraffic.toLocaleString()} searches every month</strong>{" "}
           that could be going to your business. Over 12 months, that&apos;s{" "}
-          <strong>
+          <strong className="text-foreground">
             {(missedTraffic * 12).toLocaleString()} potential customers
           </strong>{" "}
           you&apos;ll miss.
@@ -209,9 +217,12 @@ export default function StepConvert({
       <div>
         <button
           onClick={onBack}
-          className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground transition hover:bg-muted"
         >
-          ← Back to Report
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Report
         </button>
       </div>
     </div>

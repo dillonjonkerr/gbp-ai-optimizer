@@ -7,11 +7,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="pl-64">
+      <div className="pl-60">
         <Header />
-        <main className="p-8">{children}</main>
+        <main className="p-6">{children}</main>
       </div>
     </div>
   );

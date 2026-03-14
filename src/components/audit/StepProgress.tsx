@@ -1,32 +1,45 @@
 "use client";
 
+type Step = {
+  label: string;
+};
+
 export default function StepProgress({
   steps,
   current,
 }: {
-  steps: { label: string }[];
+  steps: Step[];
   current: number;
 }) {
   return (
     <div className="flex items-center gap-1">
-      {steps.map((s, i) => {
-        const done = i < current;
-        const active = i === current;
+      {steps.map((step, index) => {
+        const isActive = index === current;
+        const isCompleted = index < current;
+
         return (
-          <div key={i} className="flex flex-1 flex-col items-center gap-2">
-            <div className="flex w-full items-center">
-              <div
-                className={`mx-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                  done
-                    ? "bg-primary-600 text-white"
-                    : active
-                      ? "bg-primary-600 text-white ring-4 ring-primary-100"
-                      : "bg-slate-200 text-slate-500"
+          <div key={step.label} className="flex items-center">
+            <div
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : isCompleted
+                  ? "text-muted-foreground"
+                  : "text-muted-foreground/50"
+              }`}
+            >
+              <span
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : isCompleted
+                    ? "bg-muted-foreground/20 text-muted-foreground"
+                    : "bg-muted text-muted-foreground/50"
                 }`}
               >
-                {done ? (
+                {isCompleted ? (
                   <svg
-                    className="h-4 w-4"
+                    className="h-3 w-3"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -39,17 +52,18 @@ export default function StepProgress({
                     />
                   </svg>
                 ) : (
-                  i + 1
+                  index + 1
                 )}
-              </div>
+              </span>
+              <span className="hidden sm:inline">{step.label}</span>
             </div>
-            <span
-              className={`text-center text-xs font-medium ${
-                done || active ? "text-primary-700" : "text-slate-400"
-              }`}
-            >
-              {s.label}
-            </span>
+            {index < steps.length - 1 && (
+              <div
+                className={`mx-1 h-px w-4 ${
+                  isCompleted ? "bg-muted-foreground/30" : "bg-border"
+                }`}
+              />
+            )}
           </div>
         );
       })}

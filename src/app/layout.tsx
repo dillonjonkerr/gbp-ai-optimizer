@@ -1,17 +1,31 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
 
 export const metadata: Metadata = {
-  title: "Paint & Profits | Google Business Profile Optimizer for Painters",
+  title: "GBP AI Optimizer | AI-Powered Google Business Profile Optimization",
   description:
-    "Help painting businesses optimize their Google Business Profiles with AI-powered insights. Marketing for painters.",
+    "Discover keyword gaps and competitor advantages. Let AI optimize your Google Business Profile to capture more local searches.",
   icons: {
     icon: "/brand/icon.png",
     apple: "/brand/icon.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0a0a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -20,8 +34,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans`}>
+        {children}
+      </body>
     </html>
   );
 }

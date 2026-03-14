@@ -21,46 +21,49 @@ export default function StepMarketScan({
 }) {
   return (
     <div className="space-y-10">
-      {/* ── 1. Result Header ── */}
+      {/* Result Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50/60 px-3 py-1 text-xs font-semibold text-primary-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary mb-6">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+          </span>
           AI Market Scan Complete
         </div>
 
-        <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl text-balance">
           Your competitors are capturing
           <br />
-          <span className="text-rose-600">searches you&apos;re missing</span>
+          <span className="text-destructive">searches you&apos;re missing</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-500">
+        <p className="mx-auto mt-4 max-w-lg text-muted-foreground leading-relaxed">
           We analyzed {data.totalKeywordsAnalyzed} local keywords in{" "}
-          <span className="font-medium text-slate-700">{city}</span> and found{" "}
-          <span className="font-semibold text-rose-600">
+          <span className="font-medium text-foreground">{city}</span> and found{" "}
+          <span className="font-semibold text-destructive">
             {data.keywords.length} keyword gaps
           </span>{" "}
           where{" "}
-          <span className="font-medium text-slate-700">
+          <span className="font-medium text-foreground">
             {data.primaryCompetitorName}
           </span>{" "}
           is outranking{" "}
-          <span className="font-medium text-slate-700">{businessName}</span>.
+          <span className="font-medium text-foreground">{businessName}</span>.
         </p>
       </div>
 
-      {/* ── 2. Opportunity Cards ── */}
+      {/* Opportunity Cards */}
       <OpportunityCards data={data} />
 
-      {/* ── 3. Competitor Comparison ── */}
+      {/* Competitor Comparison */}
       <section>
-        <h2 className="mb-4 text-lg font-bold text-slate-900">
+        <h2 className="mb-4 text-lg font-bold text-foreground">
           Profile Comparison
         </h2>
         <CompetitorComparison data={data} />
       </section>
 
-      {/* ── 4. Keyword Gap Table ── */}
+      {/* Keyword Gap Table */}
       <section>
         <KeywordGapTable
           keywords={data.keywords}
@@ -68,30 +71,33 @@ export default function StepMarketScan({
         />
       </section>
 
-      {/* ── 5. AI Insight Panel ── */}
+      {/* AI Insight Panel */}
       <section>
         <AIInsightPanel comparison={comparison} data={data} />
       </section>
 
-      {/* ── 6. CTA ── */}
-      <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-center shadow-lg sm:p-10">
-        <h2 className="text-2xl font-bold text-white">
+      {/* CTA */}
+      <div className="rounded-2xl border border-border bg-card p-8 text-center sm:p-10">
+        <h2 className="text-xl font-bold text-foreground sm:text-2xl">
           Ready to close these gaps?
         </h2>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-300">
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground leading-relaxed">
           Download a free DIY optimization guide or let our AI fix your profile
           automatically.
         </p>
         <button
           onClick={onNext}
-          className="mt-6 rounded-xl bg-primary-500 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-slate-900"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-foreground px-8 py-3 text-sm font-semibold text-background transition hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
         >
-          See My Options →
+          See My Options
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
         </button>
       </div>
 
-      {/* ── Source note ── */}
-      <p className="text-center text-xs text-slate-400">
+      {/* Source note */}
+      <p className="text-center text-xs text-muted-foreground">
         Based on Google Business Profile data and local keyword analytics for{" "}
         {city}. Rankings checked across {data.totalKeywordsAnalyzed} local
         keywords via live SERP data.
