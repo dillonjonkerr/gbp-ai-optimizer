@@ -42,7 +42,6 @@ async function dfsPost<T>(endpoint: string, body: unknown[]): Promise<T> {
 
 // ── 1. Keyword Ideas ─────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KeywordIdeasResponse = {
   status_code: number;
   status_message: string;
@@ -51,8 +50,7 @@ type KeywordIdeasResponse = {
     status_message: string;
     result: {
       seed_keywords: string[];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      items: any[];
+      items: Record<string, unknown>[];
     }[];
   }[];
 };
@@ -107,15 +105,15 @@ export async function getKeywordIdeas(
   }
 
   const parsed = items
-    .map((item: Record<string, unknown>) => ({
-      keyword: String(item.keyword ?? ""),
-      volume:
-        (item as Record<string, Record<string, number>>).keyword_info?.search_volume ??
-        (item as Record<string, number>).search_volume ??
-        0,
-    }))
-    .filter((k: KeywordSeed) => k.volume > 0)
-    .sort((a: KeywordSeed, b: KeywordSeed) => b.volume - a.volume)
+    .map((item) => {
+      const kwInfo = item.keyword_info as Record<string, number> | undefined;
+      return {
+        keyword: String(item.keyword ?? ""),
+        volume: kwInfo?.search_volume ?? (item.search_volume as number) ?? 0,
+      };
+    })
+    .filter((k) => k.volume > 0)
+    .sort((a, b) => b.volume - a.volume)
     .slice(0, 10);
 
   console.log("[dataforseo] Parsed keywords with volume:", parsed.length);
@@ -177,7 +175,7 @@ export async function getSerpRankings(
       `[dataforseo] SERP task warning for "${keyword}":`,
       task?.status_message,
     );
-    return { myRank: null, competitorRank: 1, topCompetitor: "Unknown", topCompetitors: [] };
+    return { myRank: null, competitorRank: 1, topCompetitor: "Unknown", topCompetitorDomain: "", topCompetitors: [] };
   }
 
   const items = (task.result?.[0]?.items ?? []).filter(
