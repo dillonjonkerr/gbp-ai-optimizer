@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CheckCircle } from "lucide-react";
 
 type Props = {
   name: string;
@@ -33,39 +34,33 @@ export default function BusinessProfileCard({
 
   if (!visible) {
     return (
-      <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white">
-        <div className="h-48 animate-pulse bg-slate-100" />
+      <div className="overflow-hidden rounded-2xl border-2 border-border bg-card">
+        <div className="h-48 animate-pulse bg-muted" />
         <div className="space-y-3 p-5">
-          <div className="h-5 w-3/4 animate-pulse rounded bg-slate-100" />
-          <div className="h-4 w-1/2 animate-pulse rounded bg-slate-100" />
+          <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm"
-      style={{ animation: "fadeUp 0.6s ease-out" }}
-    >
-      {/* Photo */}
+    <div className="overflow-hidden rounded-2xl border-2 border-border bg-card shadow-lg animate-fade-up">
       {photoUrls.length > 0 && (
-        <div className="relative h-48 overflow-hidden bg-slate-900">
+        <div className="relative h-48 overflow-hidden bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={photoUrls[photoIdx]}
             alt={name}
             className="h-full w-full object-cover transition-opacity duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
           <div className="absolute left-5 top-4">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/90 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+              <CheckCircle className="h-3 w-3" />
               Profile Found
-            </div>
+            </span>
           </div>
 
           {photoUrls.length > 1 && (
@@ -83,37 +78,45 @@ export default function BusinessProfileCard({
         </div>
       )}
 
-      {/* Info */}
       <div className="p-5">
-        <h2 className="text-xl font-bold text-slate-900">{name}</h2>
-        <p className="mt-1 text-sm text-slate-500">{address}</p>
+        <h2 className="text-xl font-black text-foreground">{name}</h2>
+        <p className="mt-1 text-sm font-medium text-muted-foreground">
+          {address}
+        </p>
 
         <div className="mt-4 flex items-center gap-6">
           <Stat label="Rating" value={rating.toFixed(1)} icon="⭐" />
-          <div className="h-8 w-px bg-slate-100" />
-          <Stat label="Reviews" value={reviewCount.toLocaleString()} icon="💬" />
-          <div className="h-8 w-px bg-slate-100" />
+          <div className="h-8 w-px bg-border" />
+          <Stat
+            label="Reviews"
+            value={reviewCount.toLocaleString()}
+            icon="💬"
+          />
+          <div className="h-8 w-px bg-border" />
           <Stat label="Photos" value={String(photoCount)} icon="📷" />
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }
 
-function Stat({ label, value, icon }: { label: string; value: string; icon: string }) {
+function Stat({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon: string;
+}) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-lg">{icon}</span>
       <div>
-        <p className="text-lg font-bold leading-tight text-slate-900">{value}</p>
-        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-lg font-black leading-tight text-foreground">
+          {value}
+        </p>
+        <p className="text-xs font-semibold text-muted-foreground">{label}</p>
       </div>
     </div>
   );

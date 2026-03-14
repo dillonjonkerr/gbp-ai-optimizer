@@ -2,18 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Existing Paint & Profits variables ── */
-:root {
-  --foreground-rgb: 15 23 42;
-  --background-rgb: 248 250 252;
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-}
-
-/* ── shadcn/ui CSS variables (Paint & Profits brand: #5BC0EB sky blue) ── */
+/* Paint & Profits Brand: Sky Blue #5BC0EB */
 :root {
   --background: 0 0% 98%;
   --foreground: 0 0% 7%;
@@ -50,7 +39,16 @@ body {
   --chart-5: 30 55% 45%;
 }
 
-/* ── Custom animations (v0 funnel) ── */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations */
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(91, 192, 235, 0.4); }
   50% { box-shadow: 0 0 0 12px rgba(91, 192, 235, 0); }
@@ -71,6 +69,21 @@ body {
   100% { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes stepIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes discoverIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -87,14 +100,20 @@ body {
   animation: slide-in-right 0.5s ease-out forwards;
 }
 
+.animate-step-in {
+  animation: stepIn 0.4s ease-out;
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease-out;
+}
+
+.animate-discover-in {
+  animation: discoverIn 0.5s ease-out;
+}
+
 .animation-delay-100 { animation-delay: 100ms; }
 .animation-delay-200 { animation-delay: 200ms; }
 .animation-delay-300 { animation-delay: 300ms; }
 .animation-delay-400 { animation-delay: 400ms; }
 .animation-delay-500 { animation-delay: 500ms; }
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-}

@@ -1,6 +1,7 @@
 "use client";
 
 import type { MarketScan } from "@/lib/types";
+import { SearchX, Target, TrendingUp } from "lucide-react";
 
 export default function OpportunityCards({ data }: { data: MarketScan }) {
   const gapCount = data.keywords.length;
@@ -8,53 +9,56 @@ export default function OpportunityCards({ data }: { data: MarketScan }) {
   const biggestKeyword = data.keywords[0];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-3">
       {/* Keywords lost */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
-        <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-rose-50" />
-        <p className="relative text-sm font-medium text-slate-500">
-          Keywords Lost
-        </p>
-        <p className="relative mt-2 text-3xl font-bold tabular-nums text-slate-900">
+      <div className="rounded-2xl border-2 border-border bg-card p-5 shadow-md text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shadow-red-500/30">
+          <SearchX className="h-6 w-6" />
+        </div>
+        <div className="text-2xl font-black text-foreground">
           {gapCount}
-          <span className="text-lg font-normal text-slate-400">
-            {" "}/ {total}
+          <span className="text-base font-bold text-muted-foreground">
+            {" "}
+            / {total}
           </span>
-        </p>
-        <p className="relative mt-1 text-xs text-slate-400">
-          high-intent local keywords
-        </p>
+        </div>
+        <div className="text-xs font-semibold text-muted-foreground">
+          high-intent keywords lost
+        </div>
       </div>
 
       {/* Missed searches */}
-      <div className="relative overflow-hidden rounded-2xl border border-rose-200/60 bg-gradient-to-br from-rose-50/80 to-white p-6 shadow-sm">
-        <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-rose-100/50" />
-        <p className="relative text-sm font-medium text-rose-600">
-          Estimated Missed Searches
-        </p>
-        <p className="relative mt-2 text-3xl font-bold tabular-nums text-rose-700">
+      <div className="rounded-2xl border-2 border-destructive/30 bg-destructive/5 p-5 shadow-md text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-500/30">
+          <Target className="h-6 w-6" />
+        </div>
+        <div className="text-2xl font-black text-foreground">
           {data.estimatedMissedTraffic.toLocaleString()}
-        </p>
-        <p className="relative mt-1 text-xs text-rose-400">
-          searches / month
-        </p>
+        </div>
+        <div className="text-xs font-semibold text-muted-foreground">
+          missed searches / month
+        </div>
       </div>
 
       {/* Biggest opportunity */}
-      <div className="relative overflow-hidden rounded-2xl border border-primary-200/60 bg-gradient-to-br from-primary-50/80 to-white p-6 shadow-sm">
-        <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary-100/50" />
-        <p className="relative text-sm font-medium text-primary-600">
-          Biggest Opportunity
-        </p>
-        <p className="relative mt-2 text-lg font-bold text-slate-900 leading-tight">
-          {biggestKeyword ? `"${biggestKeyword.keyword}"` : "—"}
-        </p>
-        {biggestKeyword && (
-          <p className="relative mt-1 text-xs text-primary-500">
-            {biggestKeyword.volume.toLocaleString()} searches ·{" "}
-            {biggestKeyword.yourRank ? `You: #${biggestKeyword.yourRank}` : "Not ranked"} ·{" "}
-            Them: #{biggestKeyword.competitorRank}
-          </p>
+      <div className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-5 shadow-md text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/30">
+          <TrendingUp className="h-6 w-6" />
+        </div>
+        {biggestKeyword ? (
+          <>
+            <div className="text-base font-black text-foreground leading-tight">
+              &ldquo;{biggestKeyword.keyword}&rdquo;
+            </div>
+            <div className="text-xs font-semibold text-muted-foreground mt-1">
+              {biggestKeyword.volume.toLocaleString()} searches ·{" "}
+              {biggestKeyword.yourRank
+                ? `You: #${biggestKeyword.yourRank}`
+                : "Not ranked"}
+            </div>
+          </>
+        ) : (
+          <div className="text-base font-black text-foreground">—</div>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CheckCircle, Loader2 } from "lucide-react";
 
 const STEPS = [
   "Detecting business profile",
@@ -30,63 +31,73 @@ export default function MarketScanProgress({
 
   return (
     <div className="text-center">
-      <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
+      {/* Animated Scanner Icon */}
+      <div className="relative mx-auto mb-6 h-24 w-24">
+        <div className="absolute inset-0 rounded-full border-4 border-primary/30 animate-ping" />
+        <div className="absolute inset-2 rounded-full border-4 border-primary/40 animate-ping animation-delay-200" />
+        <div className="absolute inset-4 rounded-full border-4 border-primary/50 animate-ping animation-delay-400" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-xl shadow-primary/40">
+            <Loader2 className="h-8 w-8 text-white animate-spin" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-2 inline-flex items-center gap-2 rounded-full border-2 border-border bg-card px-4 py-1.5 text-xs font-bold text-muted-foreground shadow-sm">
         <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
         </span>
         AI Market Scan in Progress
       </div>
 
-      <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-        Scanning your local market
+      <h1 className="mt-4 text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+        AI scanning your market
       </h1>
 
-      <p className="mx-auto mt-3 max-w-md text-base text-slate-500">
-        Analyzing competitors, reviews, and ranking signals for{" "}
-        <span className="font-medium text-slate-700">{businessName}</span> in{" "}
-        <span className="font-medium text-slate-700">{city}</span>
+      <p className="mx-auto mt-3 max-w-md text-base font-semibold text-muted-foreground">
+        Analyzing the{" "}
+        <span className="font-bold text-foreground">{city}</span> painting
+        market for{" "}
+        <span className="font-bold text-foreground">{businessName}</span>
       </p>
 
       {/* Progress bar */}
-      <div className="mx-auto mt-8 max-w-sm">
-        <div className="relative h-1.5 overflow-hidden rounded-full bg-slate-100">
+      <div className="mx-auto mt-8 max-w-sm space-y-2">
+        <div className="relative h-3 overflow-hidden rounded-full bg-primary/20">
           <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-500 to-primary-400 transition-all duration-[1500ms] ease-out"
-            style={{ width: `${progress}%` }}
-          />
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary-400/60 to-transparent opacity-80 blur-sm transition-all duration-[1500ms] ease-out"
+            className="absolute inset-y-0 left-0 rounded-full bg-primary transition-all duration-[1500ms] ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
+        <div className="flex justify-between text-sm font-bold">
+          <span className="text-muted-foreground">Scanning...</span>
+          <span className="text-primary">{Math.round(progress)}%</span>
+        </div>
       </div>
 
-      {/* Step checklist — only show completed + current active step */}
+      {/* Step checklist */}
       <div className="mx-auto mt-6 flex max-w-xs flex-col items-start gap-2">
         {STEPS.slice(0, completedSteps + 1).map((label, i) => {
           const done = i < completedSteps;
           return (
             <div
               key={label}
-              className="flex items-center gap-2.5"
-              style={{ animation: "stepIn 0.4s ease-out" }}
+              className="flex items-center gap-2.5 animate-step-in"
             >
               {done ? (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white">
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
+                <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
               ) : (
-                <span className="relative flex h-5 w-5 items-center justify-center">
-                  <span className="absolute h-5 w-5 animate-ping rounded-full bg-primary-200" />
-                  <span className="relative h-2.5 w-2.5 rounded-full bg-primary-500" />
+                <span className="relative flex h-5 w-5 items-center justify-center shrink-0">
+                  <span className="absolute h-5 w-5 animate-ping rounded-full bg-primary/20" />
+                  <span className="relative h-2.5 w-2.5 rounded-full bg-primary" />
                 </span>
               )}
               <span
-                className={`text-sm ${
-                  done ? "font-medium text-slate-700" : "font-medium text-primary-600"
+                className={`text-sm font-bold ${
+                  done
+                    ? "text-foreground"
+                    : "text-primary"
                 }`}
               >
                 {label}
@@ -95,13 +106,6 @@ export default function MarketScanProgress({
           );
         })}
       </div>
-
-      <style jsx>{`
-        @keyframes stepIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -28,7 +28,3 @@ export function Logo({ className, size = 'md' }: LogoProps) {
     </div>
   )
 }
-
-export function LogoWithText({ className, size = 'md' }: LogoProps) {
-  return <Logo className={className} size={size} />
-}

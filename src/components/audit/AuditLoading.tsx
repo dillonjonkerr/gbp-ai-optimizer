@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import MarketScanProgress from "./scan/MarketScanProgress";
 import BusinessProfileCard from "./scan/BusinessProfileCard";
-import ScanDiscoveriesFeed, { type Discovery } from "./scan/ScanDiscoveriesFeed";
+import ScanDiscoveriesFeed, {
+  type Discovery,
+} from "./scan/ScanDiscoveriesFeed";
 import TopCompetitorHighlight from "./scan/TopCompetitorHighlight";
 import ScanInsightPanel from "./scan/ScanInsightPanel";
 
@@ -126,7 +128,7 @@ export default function AuditLoading({
 
       return items;
     },
-    [city, industry],
+    [city, industry]
   );
 
   const buildInsight = useCallback((data: BusinessPreview): string => {
@@ -136,36 +138,36 @@ export default function AuditLoading({
     if (top) {
       if (data.rating >= top.rating && data.reviewCount >= top.reviewCount) {
         parts.push(
-          `Your profile is strong with a ${data.rating.toFixed(1)}★ rating and ${data.reviewCount} reviews.`,
+          `Your profile is strong with a ${data.rating.toFixed(1)}★ rating and ${data.reviewCount} reviews.`
         );
         parts.push(
-          "However, competitors may still outrank you on keyword-optimized descriptions, posts, and Q&A entries.",
+          "However, competitors may still outrank you on keyword-optimized descriptions, posts, and Q&A entries."
         );
       } else if (top.rating > data.rating) {
         parts.push(
-          `Your rating of ${data.rating.toFixed(1)}★ is slightly behind ${top.name}'s ${top.rating.toFixed(1)}★.`,
+          `Your rating of ${data.rating.toFixed(1)}★ is slightly behind ${top.name}'s ${top.rating.toFixed(1)}★.`
         );
         parts.push(
-          "Google weighs ratings heavily in local map pack results — closing this gap could significantly improve your visibility.",
+          "Google weighs ratings heavily in local map pack results — closing this gap could significantly improve your visibility."
         );
       } else if (top.reviewCount > data.reviewCount) {
         parts.push(
-          `${top.name} has ${top.reviewCount} reviews compared to your ${data.reviewCount}.`,
+          `${top.name} has ${top.reviewCount} reviews compared to your ${data.reviewCount}.`
         );
         parts.push(
-          "Review volume is a key local ranking signal. A consistent review generation strategy could help you overtake them.",
+          "Review volume is a key local ranking signal. A consistent review generation strategy could help you overtake them."
         );
       }
     }
 
     if (!data.website) {
       parts.push(
-        "Your profile is missing a website link, which limits trust signals Google uses for ranking.",
+        "Your profile is missing a website link, which limits trust signals Google uses for ranking."
       );
     }
     if (data.photoCount < 10) {
       parts.push(
-        `Only ${data.photoCount} photos were detected. Profiles with 20+ photos tend to get more engagement.`,
+        `Only ${data.photoCount} photos were detected. Profiles with 20+ photos tend to get more engagement.`
       );
     }
 
@@ -175,7 +177,6 @@ export default function AuditLoading({
     );
   }, []);
 
-  // Fetch preview data
   useEffect(() => {
     async function fetchPreview() {
       try {
@@ -197,7 +198,6 @@ export default function AuditLoading({
     fetchPreview();
   }, [businessName, city, industry, buildDiscoveries, buildInsight]);
 
-  // Smooth progress animation
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress((p) => {
@@ -209,7 +209,6 @@ export default function AuditLoading({
     return () => clearInterval(timer);
   }, []);
 
-  // Reveal discoveries one by one
   useEffect(() => {
     if (discoveries.length === 0) return;
     const timer = setInterval(() => {
@@ -224,7 +223,6 @@ export default function AuditLoading({
     return () => clearInterval(timer);
   }, [discoveries.length]);
 
-  // Show competitor card after enough discoveries revealed
   useEffect(() => {
     if (visibleCount >= 3 && preview?.competitors?.length) {
       const timer = setTimeout(() => setShowCompetitor(true), 800);
@@ -232,7 +230,6 @@ export default function AuditLoading({
     }
   }, [visibleCount, preview?.competitors?.length]);
 
-  // Show AI insight after competitor card
   useEffect(() => {
     if (showCompetitor && insightText) {
       const timer = setTimeout(() => setShowInsight(true), 1800);
@@ -245,14 +242,12 @@ export default function AuditLoading({
   return (
     <div className="mx-auto max-w-xl">
       <div className="space-y-6">
-        {/* 1. Progress Section */}
         <MarketScanProgress
           businessName={businessName}
           city={city}
           progress={progress}
         />
 
-        {/* 2. Business Profile Card */}
         <BusinessProfileCard
           name={preview?.name ?? businessName}
           address={preview?.address ?? ""}
@@ -263,10 +258,9 @@ export default function AuditLoading({
           visible={!!preview}
         />
 
-        {/* 3. Discoveries Feed */}
         {discoveries.length > 0 && (
           <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
               Discoveries
             </h3>
             <ScanDiscoveriesFeed
@@ -277,7 +271,6 @@ export default function AuditLoading({
           </div>
         )}
 
-        {/* 4. Top Competitor Highlight */}
         {topCompetitor && (
           <TopCompetitorHighlight
             name={topCompetitor.name}
@@ -288,7 +281,6 @@ export default function AuditLoading({
           />
         )}
 
-        {/* 5. AI Insight Panel */}
         <ScanInsightPanel insight={insightText} visible={showInsight} />
       </div>
     </div>

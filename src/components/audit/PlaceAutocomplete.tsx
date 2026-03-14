@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 
 type Prediction = {
   placeId: string;
@@ -17,6 +17,7 @@ export default function PlaceAutocomplete({
   placeholder,
   id,
   label,
+  icon,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -24,6 +25,7 @@ export default function PlaceAutocomplete({
   placeholder?: string;
   id: string;
   label: string;
+  icon?: ReactNode;
 }) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [open, setOpen] = useState(false);
@@ -38,7 +40,7 @@ export default function PlaceAutocomplete({
     }
     try {
       const res = await fetch(
-        `/api/places-autocomplete?q=${encodeURIComponent(query)}`,
+        `/api/places-autocomplete?q=${encodeURIComponent(query)}`
       );
       const data = await res.json();
       setPredictions(data.predictions ?? []);
@@ -93,30 +95,37 @@ export default function PlaceAutocomplete({
 
   return (
     <div ref={containerRef} className="relative">
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-bold text-foreground">
         {label}
       </label>
-      <input
-        id={id}
-        type="text"
-        required
-        value={value}
-        onChange={(e) => handleChange(e.target.value)}
-        onFocus={() => predictions.length > 0 && setOpen(true)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        autoComplete="off"
-        role="combobox"
-        aria-expanded={open}
-        aria-autocomplete="list"
-        aria-controls={`${id}-listbox`}
-        className="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-      />
+      <div className="relative mt-1.5">
+        {icon && (
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/30">
+            {icon}
+          </div>
+        )}
+        <input
+          id={id}
+          type="text"
+          required
+          value={value}
+          onChange={(e) => handleChange(e.target.value)}
+          onFocus={() => predictions.length > 0 && setOpen(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          autoComplete="off"
+          role="combobox"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          aria-controls={`${id}-listbox`}
+          className={`block w-full rounded-xl border-2 border-border bg-card ${icon ? "pl-16" : "pl-4"} pr-4 h-14 text-base font-semibold text-foreground placeholder-muted-foreground shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20`}
+        />
+      </div>
       {open && predictions.length > 0 && (
         <ul
           id={`${id}-listbox`}
           role="listbox"
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-slate-900/5"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border-2 border-border bg-card py-1 shadow-lg"
         >
           {predictions.map((p, i) => (
             <li
@@ -125,15 +134,15 @@ export default function PlaceAutocomplete({
               aria-selected={i === activeIdx}
               onMouseDown={() => handleSelect(p)}
               onMouseEnter={() => setActiveIdx(i)}
-              className={`cursor-pointer px-4 py-2.5 text-sm transition ${
+              className={`cursor-pointer px-4 py-2.5 text-sm font-semibold transition ${
                 i === activeIdx
-                  ? "bg-primary-50 text-primary-700"
-                  : "text-slate-700 hover:bg-slate-50"
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground hover:bg-muted"
               }`}
             >
-              <span className="font-medium">{p.mainText}</span>
+              <span className="font-bold">{p.mainText}</span>
               {p.secondaryText && (
-                <span className="ml-1.5 text-slate-400">
+                <span className="ml-1.5 text-muted-foreground font-medium">
                   {p.secondaryText}
                 </span>
               )}
