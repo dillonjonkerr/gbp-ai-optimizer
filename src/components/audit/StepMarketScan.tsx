@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarketScan, BusinessProfile } from "@/lib/types";
+import type { MarketScan, BusinessProfile, KeywordGap } from "@/lib/types";
 
 function StatRow({
   label,
@@ -72,11 +72,45 @@ function ProfileCard({
       >
         {profile.name.charAt(0).toUpperCase()}
       </div>
-      <p className="mt-1 text-center text-sm font-bold text-slate-900 leading-tight">
+      <p className="mt-1 text-center text-sm font-bold leading-tight text-slate-900">
         {profile.name}
       </p>
       <p className="text-xs text-slate-400">{label}</p>
     </div>
+  );
+}
+
+function PriorityBadge({ priority }: { priority: KeywordGap["priority"] }) {
+  const styles = {
+    high: "bg-rose-100 text-rose-700",
+    medium: "bg-amber-100 text-amber-700",
+    low: "bg-slate-100 text-slate-600",
+  };
+  return (
+    <span
+      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-bold uppercase ${styles[priority]}`}
+    >
+      {priority}
+    </span>
+  );
+}
+
+function RankBadge({ rank }: { rank: number | null }) {
+  if (rank === null) {
+    return <span className="text-sm text-slate-400">Not ranked</span>;
+  }
+  const color =
+    rank <= 3
+      ? "bg-emerald-100 text-emerald-700"
+      : rank <= 10
+        ? "bg-amber-100 text-amber-700"
+        : "bg-rose-100 text-rose-700";
+  return (
+    <span
+      className={`inline-flex min-w-[2.5rem] justify-center rounded-full px-2 py-0.5 text-xs font-bold ${color}`}
+    >
+      #{rank}
+    </span>
   );
 }
 
@@ -93,51 +127,105 @@ export default function StepMarketScan({
 }) {
   const you = data.yourProfile;
   const comp = data.competitorProfile;
-
-  const kwWins = data.keywords.filter(
-    (k) => k.yourRank !== null && k.yourRank <= k.topCompetitorRank,
-  ).length;
-  const kwLosses = data.keywords.filter(
-    (k) => k.yourRank === null || k.yourRank > k.topCompetitorRank,
-  ).length;
+  const competitorName = data.primaryCompetitorName;
+  const highPriority = data.keywords.filter((k) => k.priority === "high").length;
 
   return (
     <div className="space-y-8">
+      {/* ── Header ── */}
       <div className="text-center">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary-600">
           Step 2 of 5
         </p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-          You vs. Your Top Competitor
+          Competitor Gap Analysis
         </h1>
         <p className="mt-2 text-base text-slate-500">
-          Real data from Google for{" "}
-          <span className="font-medium text-slate-700">{businessName}</span> and
-          their #1 competitor in{" "}
-          <span className="font-medium text-slate-700">{city}</span>.
+          How{" "}
+          <span className="font-medium text-slate-700">{businessName}</span>{" "}
+          compares to the top out-performer in{" "}
+          <span className="font-medium text-slate-700">{city}</span>
         </p>
       </div>
 
-      {/* ── Side-by-side comparison card ── */}
+      {/* ── Summary alert ── */}
+      {data.keywords.length > 0 && (
+        <div className="rounded-2xl border border-rose-200/60 bg-gradient-to-r from-rose-50 to-amber-50/50 p-6">
+          <p className="text-lg font-bold text-slate-900">
+            You&apos;re being outperformed by{" "}
+            <span className="text-rose-600">{competitorName}</span> on{" "}
+            <span className="text-rose-600">{data.keywords.length} high-intent local keywords</span>.
+          </p>
+          <p className="mt-1.5 text-sm text-slate-600">
+            Estimated missed traffic:{" "}
+            <span className="font-bold text-rose-600">
+              {data.estimatedMissedTraffic.toLocaleString()} visitors/month
+            </span>
+          </p>
+        </div>
+      )}
+
+      {data.keywords.length === 0 && (
+        <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-6 text-center">
+          <p className="text-lg font-bold text-emerald-800">
+            No keyword gaps found against the top competitor.
+          </p>
+          <p className="mt-1 text-sm text-emerald-600">
+            Across {data.totalKeywordsAnalyzed} keywords analyzed, you&apos;re holding your own.
+          </p>
+        </div>
+      )}
+
+      {/* ── Stats cards ── */}
+      <div className="grid gap-4 sm:grid-cols-4">
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 text-center shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            Keywords Analyzed
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">
+            {data.totalKeywordsAnalyzed}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 text-center shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            Keyword Gaps
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-rose-600">
+            {data.keywords.length}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 text-center shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            High Priority
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-600">
+            {highPriority}
+          </p>
+        </div>
+        <div className="rounded-xl border border-rose-200/60 bg-rose-50/50 p-4 text-center shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-rose-500">
+            Missed Traffic
+          </p>
+          <p className="mt-1 text-2xl font-bold tabular-nums text-rose-600">
+            {data.estimatedMissedTraffic.toLocaleString()}
+            <span className="text-sm font-normal text-rose-400">/mo</span>
+          </p>
+        </div>
+      </div>
+
+      {/* ── Side-by-side GBP comparison ── */}
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
         {comp ? (
           <>
-            {/* Header with both business names */}
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-slate-200 bg-slate-50/50 px-6 py-5">
-              <ProfileCard
-                profile={you}
-                label="You"
-                accent="bg-primary-500"
-              />
+              <ProfileCard profile={you} label="You" accent="bg-primary-500" />
               <div className="text-2xl font-black text-slate-300">VS</div>
               <ProfileCard
                 profile={comp}
-                label="Top Competitor"
+                label="Out-performer"
                 accent="bg-slate-700"
               />
             </div>
-
-            {/* Stats */}
             <div className="px-6 py-2">
               <StatRow
                 label="Google Rating"
@@ -181,22 +269,12 @@ export default function StepMarketScan({
                       : "them"
                 }
               />
-              <StatRow
-                label="Keywords Winning"
-                you={kwWins.toString()}
-                them={kwLosses.toString()}
-                winner={compare(kwWins, kwLosses)}
-              />
             </div>
           </>
         ) : (
           <div className="px-6 py-8">
             <div className="mb-4 flex justify-center">
-              <ProfileCard
-                profile={you}
-                label="Your Profile"
-                accent="bg-primary-500"
-              />
+              <ProfileCard profile={you} label="Your Profile" accent="bg-primary-500" />
             </div>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {[
@@ -217,127 +295,97 @@ export default function StepMarketScan({
         )}
       </div>
 
-      {/* ── Missed opportunity hero ── */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 text-center shadow-sm">
-          <p className="text-sm font-medium text-slate-500">
-            Monthly local searches
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">
-            {data.totalLocalSearches.toLocaleString()}
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200/80 bg-white p-5 text-center shadow-sm">
-          <p className="text-sm font-medium text-slate-500">
-            Keywords tracked
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 tabular-nums">
-            {data.keywords.length}
-          </p>
-        </div>
-        <div className="rounded-xl border border-rose-200/60 bg-rose-50/50 p-5 text-center shadow-sm">
-          <p className="text-sm font-medium text-rose-700">
-            Traffic you&apos;re missing
-          </p>
-          <p className="mt-1 text-2xl font-bold text-rose-600 tabular-nums">
-            {data.estimatedMissedTraffic.toLocaleString()}
-            <span className="text-sm font-normal text-rose-400">/mo</span>
-          </p>
-        </div>
-      </div>
-
-      {/* ── Keyword comparison table ── */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
-        <div className="border-b border-slate-100 px-6 py-4">
-          <h2 className="text-sm font-semibold text-slate-800">
-            Keyword-by-keyword breakdown
-          </h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-6 py-3 font-medium text-slate-500">
-                  Keyword
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-slate-500">
-                  Volume
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-primary-600">
-                  You
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-slate-500">
-                  Competitor
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-slate-500">
-                  Missed Traffic
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {data.keywords.map((kw, i) => {
-                const winning =
-                  kw.yourRank !== null &&
-                  kw.yourRank <= kw.topCompetitorRank;
-                return (
-                  <tr
-                    key={i}
-                    className={
-                      winning
-                        ? "bg-emerald-50/40 hover:bg-emerald-50/70"
-                        : "hover:bg-slate-50/50"
-                    }
-                  >
+      {/* ── Keyword gap table ── */}
+      {data.keywords.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
+          <div className="border-b border-slate-100 px-6 py-4">
+            <h2 className="text-sm font-semibold text-slate-800">
+              Keyword Gap Report
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-400">
+              Keywords where{" "}
+              <span className="font-medium text-slate-600">{competitorName}</span>{" "}
+              outranks you — sorted by highest opportunity
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <th className="px-6 py-3 font-medium text-slate-500">
+                    Keyword
+                  </th>
+                  <th className="px-3 py-3 text-right font-medium text-slate-500">
+                    Volume
+                  </th>
+                  <th className="px-3 py-3 text-center font-medium text-primary-600">
+                    You
+                  </th>
+                  <th className="px-3 py-3 text-center font-medium text-slate-500">
+                    Them
+                  </th>
+                  <th className="px-3 py-3 text-right font-medium text-slate-500">
+                    Gap
+                  </th>
+                  <th className="px-3 py-3 text-right font-medium text-slate-500">
+                    Traffic Opp.
+                  </th>
+                  <th className="px-4 py-3 text-center font-medium text-slate-500">
+                    Priority
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {data.keywords.map((kw, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50">
                     <td className="px-6 py-3 font-medium text-slate-800">
                       {kw.keyword}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-slate-600">
+                    <td className="px-3 py-3 text-right tabular-nums text-slate-600">
                       {kw.volume.toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      {kw.yourRank ? (
-                        <span
-                          className={`inline-flex min-w-[2.5rem] justify-center rounded-full px-2 py-0.5 text-xs font-bold ${
-                            kw.yourRank <= 3
-                              ? "bg-emerald-100 text-emerald-700"
-                              : kw.yourRank <= 10
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-rose-100 text-rose-700"
-                          }`}
-                        >
-                          #{kw.yourRank}
+                    <td className="px-3 py-3 text-center">
+                      <RankBadge rank={kw.yourRank} />
+                    </td>
+                    <td className="px-3 py-3 text-center">
+                      <RankBadge rank={kw.competitorRank} />
+                    </td>
+                    <td className="px-3 py-3 text-right tabular-nums">
+                      {kw.gap !== null ? (
+                        <span className="font-semibold text-rose-600">
+                          {kw.gap} pos behind
                         </span>
                       ) : (
-                        <span className="text-slate-400">Not ranked</span>
+                        <span className="text-sm text-rose-500">
+                          Not ranking
+                        </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      <span className="inline-flex min-w-[2.5rem] justify-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">
-                        #{kw.topCompetitorRank}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      {kw.missedTraffic > 0 ? (
-                        <span className="font-semibold text-rose-600">
-                          +{kw.missedTraffic.toLocaleString()}
+                    <td className="px-3 py-3 text-right tabular-nums">
+                      {kw.trafficOpportunity > 0 ? (
+                        <span className="font-semibold text-emerald-600">
+                          +{kw.trafficOpportunity.toLocaleString()}
                         </span>
                       ) : (
                         <span className="text-slate-400">&mdash;</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <PriorityBadge priority={kw.priority} />
+                    </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ── What you're missing out on ── */}
+      {/* ── What you're missing (profile gaps) ── */}
       {comp && (
         <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-6 shadow-sm sm:p-8">
           <h2 className="text-sm font-semibold text-amber-800">
-            What you&apos;re missing compared to {comp.name}
+            Profile gaps vs {comp.name}
           </h2>
           <ul className="mt-3 space-y-2">
             {comp.reviewCount > you.reviewCount && (
@@ -365,9 +413,7 @@ export default function StepMarketScan({
               <li className="flex items-start gap-2 text-sm text-amber-900/80">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
                 They have{" "}
-                <strong>
-                  {comp.photoCount - you.photoCount} more photos
-                </strong>{" "}
+                <strong>{comp.photoCount - you.photoCount} more photos</strong>{" "}
                 on their profile
               </li>
             )}
@@ -377,26 +423,16 @@ export default function StepMarketScan({
                 They have a <strong>website listed</strong> — you don&apos;t
               </li>
             )}
-            {kwLosses > kwWins && (
-              <li className="flex items-start gap-2 text-sm text-amber-900/80">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                They outrank you on{" "}
-                <strong>{kwLosses} out of {data.keywords.length} keywords</strong>
-              </li>
-            )}
-            {data.estimatedMissedTraffic > 0 && (
-              <li className="flex items-start gap-2 text-sm text-amber-900/80">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                You&apos;re losing an estimated{" "}
-                <strong>
-                  {data.estimatedMissedTraffic.toLocaleString()} visitors/month
-                </strong>{" "}
-                to competitors
-              </li>
-            )}
           </ul>
         </div>
       )}
+
+      {/* ── Source note ── */}
+      <p className="text-center text-xs text-slate-400">
+        Based on Google Business Profile data and live SERP analytics for{" "}
+        {city}. Rankings checked across {data.totalKeywordsAnalyzed} local
+        keywords. Volumes reflect US search data for location-specific terms.
+      </p>
 
       <div className="flex justify-end">
         <button

@@ -19,14 +19,15 @@ export type BusinessInfo = {
   industry: Industry | "";
 };
 
-// Step 2 — Local market scan
-export type KeywordData = {
+// Step 2 — Competitor gap analysis
+export type KeywordGap = {
   keyword: string;
   volume: number;
   yourRank: number | null;
-  topCompetitorRank: number;
-  topCompetitor: string;
-  missedTraffic: number;
+  competitorRank: number | null;
+  gap: number | null;
+  trafficOpportunity: number;
+  priority: "high" | "medium" | "low";
 };
 
 export type BusinessProfile = {
@@ -41,7 +42,9 @@ export type BusinessProfile = {
 };
 
 export type MarketScan = {
-  keywords: KeywordData[];
+  keywords: KeywordGap[];
+  totalKeywordsAnalyzed: number;
+  primaryCompetitorName: string;
   topCompetitors: string[];
   estimatedMissedTraffic: number;
   radiusMiles: number;

@@ -1,18 +1,37 @@
-// DataForSEO Labs + SERP integration + AI keyword generation
 import OpenAI from "openai";
 
+// ── CTR curve for estimating traffic by SERP position ────────────────────
 const CTR_CURVE: Record<number, number> = {
-  1: 0.28,
-  2: 0.15,
-  3: 0.11,
-  4: 0.08,
-  5: 0.06,
-  6: 0.04,
-  7: 0.03,
-  8: 0.02,
-  9: 0.015,
-  10: 0.01,
+  1: 0.28, 2: 0.15, 3: 0.11, 4: 0.08, 5: 0.06,
+  6: 0.04, 7: 0.03, 8: 0.02, 9: 0.015, 10: 0.01,
 };
+
+// ── US state abbreviation map for DataForSEO location matching ───────────
+const STATE_ABBREV: Record<string, string> = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+  MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+  OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+  VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+};
+
+function normalizeLocation(city: string): string {
+  const parts = city.split(",").map((s) => s.trim());
+  if (parts.length >= 2) {
+    const cityName = parts[0];
+    const stateRaw = parts[1]!.toUpperCase();
+    const stateFull = STATE_ABBREV[stateRaw] ?? parts[1];
+    return `${cityName},${stateFull},United States`;
+  }
+  return `${city},United States`;
+}
+
+// ── DataForSEO auth & fetch ──────────────────────────────────────────────
 
 function getAuth() {
   const login = process.env.DATAFORSEO_LOGIN;
@@ -43,8 +62,6 @@ async function dfsPost<T>(endpoint: string, body: unknown[]): Promise<T> {
 
 // ── 1. AI-Generated Local Keywords ──────────────────────────────────────
 
-export type KeywordSeed = { keyword: string; volume: number };
-
 export async function generateLocalKeywords(
   openai: OpenAI,
   category: string,
@@ -55,27 +72,26 @@ export async function generateLocalKeywords(
     ? `The business website is ${websiteUrl}. Consider the types of services a ${category} typically offers.`
     : "";
 
-  const prompt = `Generate exactly 15 high-intent local keywords that real customers would search on Google when looking for a ${category} in ${city}. ${websiteContext}
+  const cityClean = city.split(",")[0]?.trim().toLowerCase() ?? city.toLowerCase();
+
+  const prompt = `Generate exactly 20 high-intent local keywords that real customers search on Google when hiring a ${category} in ${cityClean}. ${websiteContext}
 
 Requirements:
-- Every keyword MUST include the city name or "near me"
-- Focus on commercial intent (people ready to hire)
-- Include variations: "[service] [city]", "[service] near me", "best [service] [city]", "[specific service type] [city]"
-- Include both broad terms ("painter ${city}") and specific services ("interior painting ${city}", "cabinet painter ${city}", "exterior house painting ${city}")
-- Do NOT include national/informational keywords like "painting ideas", "painting with a twist", "wall art", "diamond painting"
-- These should be keywords a local service business would want to rank for
+- Every keyword MUST include "${cityClean}" or "near me"
+- Focus on commercial/transactional intent (people ready to hire or get quotes)
+- Include variations: "${category.toLowerCase()} ${cityClean}", "best ${category.toLowerCase()} ${cityClean}", "${category.toLowerCase()} near me", specific service types
+- Include both broad terms and specific services
+- Do NOT include informational/DIY keywords ("how to paint", "painting ideas", "color palettes")
+- Do NOT include brand names, chains, or national companies
+- These must be keywords that a LOCAL service business would realistically want to rank for
 
-Return ONLY a JSON array of strings, no explanation. Example format:
-["painter ${city.toLowerCase()}", "house painting ${city.toLowerCase()}", "interior painter near me"]`;
+Return ONLY a JSON array of 20 strings. No explanation.`;
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     temperature: 0.3,
     messages: [
-      {
-        role: "system",
-        content: "You are a local SEO expert. Return only valid JSON arrays.",
-      },
+      { role: "system", content: "You are a local SEO expert. Return only valid JSON arrays." },
       { role: "user", content: prompt },
     ],
   });
@@ -85,28 +101,22 @@ Return ONLY a JSON array of strings, no explanation. Example format:
 
   try {
     const keywords = JSON.parse(cleaned) as string[];
-    console.log("[dataforseo] AI generated keywords:", keywords);
-    return keywords.slice(0, 15);
+    console.log("[dataforseo] AI generated keywords:", keywords.length);
+    return keywords.slice(0, 20);
   } catch {
     console.error("[dataforseo] Failed to parse AI keywords:", cleaned);
     const cat = category.toLowerCase();
-    const loc = city.toLowerCase();
     return [
-      `${cat} ${loc}`,
-      `best ${cat} ${loc}`,
-      `${cat} near me`,
-      `${cat} services ${loc}`,
-      `local ${cat} ${loc}`,
-      `residential ${cat} ${loc}`,
-      `commercial ${cat} ${loc}`,
-      `${cat} company ${loc}`,
-      `affordable ${cat} ${loc}`,
-      `${cat} contractors ${loc}`,
+      `${cat} ${cityClean}`, `best ${cat} ${cityClean}`, `${cat} near me`,
+      `${cat} services ${cityClean}`, `${cat} company ${cityClean}`,
+      `affordable ${cat} ${cityClean}`, `${cat} contractors ${cityClean}`,
+      `residential ${cat} ${cityClean}`, `commercial ${cat} ${cityClean}`,
+      `${cat} cost ${cityClean}`,
     ];
   }
 }
 
-// ── 2. Get Search Volumes via DataForSEO ────────────────────────────────
+// ── 2. Get Search Volumes ────────────────────────────────────────────────
 
 type SearchVolumeResponse = {
   tasks: {
@@ -119,19 +129,23 @@ type SearchVolumeResponse = {
   }[];
 };
 
+type KeywordSeed = { keyword: string; volume: number };
+
 export async function getSearchVolumes(
   keywords: string[],
   city: string,
 ): Promise<KeywordSeed[]> {
   console.log("[dataforseo] Getting search volumes for", keywords.length, "keywords");
 
+  // Use country-level location — keywords already contain city names
+  // so volumes are effectively local-intent even at US level
   const data = await dfsPost<SearchVolumeResponse>(
     "keywords_data/google_ads/search_volume/live",
     [
       {
         keywords,
         language_code: "en",
-        location_name: `${city},United States`,
+        location_code: 2840,
       },
     ],
   );
@@ -139,27 +153,48 @@ export async function getSearchVolumes(
   const task = data.tasks?.[0];
   if (!task || task.status_code !== 20000) {
     console.warn("[dataforseo] Search volume task error:", task?.status_message);
+    // Try again with normalized location name as fallback
+    try {
+      const fallback = await dfsPost<SearchVolumeResponse>(
+        "keywords_data/google_ads/search_volume/live",
+        [{ keywords, language_code: "en", location_name: normalizeLocation(city) }],
+      );
+      const fb = fallback.tasks?.[0];
+      if (fb?.status_code === 20000 && fb.result?.length) {
+        return fb.result
+          .filter((r) => (r.search_volume ?? 0) > 0)
+          .map((r) => ({ keyword: r.keyword, volume: r.search_volume ?? 0 }))
+          .sort((a, b) => b.volume - a.volume)
+          .slice(0, 15);
+      }
+    } catch {
+      // continue with empty
+    }
     return keywords.map((kw) => ({ keyword: kw, volume: 0 }));
   }
 
   const results = task.result ?? [];
-  console.log("[dataforseo] Got volumes for", results.length, "keywords");
+  console.log("[dataforseo] Raw volume results:", results.length);
 
   const volumeMap = new Map<string, number>();
   for (const item of results) {
     volumeMap.set(item.keyword, item.search_volume ?? 0);
   }
 
-  return keywords
-    .map((kw) => ({
-      keyword: kw,
-      volume: volumeMap.get(kw) ?? 0,
-    }))
+  // Only keep keywords with real volume, sorted by volume
+  const withVolume = keywords
+    .map((kw) => ({ keyword: kw, volume: volumeMap.get(kw) ?? 0 }))
+    .filter((s) => s.volume > 0)
     .sort((a, b) => b.volume - a.volume)
-    .slice(0, 10);
+    .slice(0, 15);
+
+  console.log("[dataforseo] Keywords with volume > 0:", withVolume.length,
+    withVolume.map((s) => `${s.keyword} (${s.volume})`).join(", "));
+
+  return withVolume;
 }
 
-// ── 3. SERP Rankings ────────────────────────────────────────────────────
+// ── 3. SERP Rankings (returns all organic results) ───────────────────────
 
 type SerpItem = {
   type: string;
@@ -175,122 +210,142 @@ type SerpResponse = {
   tasks: {
     status_code: number;
     status_message: string;
-    result: {
-      items: SerpItem[];
-    }[];
+    result: { items: SerpItem[] }[];
   }[];
 };
 
-type SerpRankResult = {
-  myRank: number | null;
-  competitorRank: number;
-  topCompetitor: string;
-  topCompetitorDomain: string;
-  topCompetitors: string[];
+type SerpOrganic = {
+  title: string;
+  domain: string;
+  rank: number;
 };
 
-export async function getSerpRankings(
+type KeywordSerpResult = {
+  myRank: number | null;
+  organics: SerpOrganic[];
+};
+
+async function getKeywordSerp(
   keyword: string,
   city: string,
   businessName: string,
-): Promise<SerpRankResult> {
-  const location = `${city},United States`;
+  businessDomain?: string,
+): Promise<KeywordSerpResult> {
+  const location = normalizeLocation(city);
 
   const data = await dfsPost<SerpResponse>(
     "serp/google/organic/live/advanced",
-    [
-      {
-        keyword,
-        location_name: location,
-        language_code: "en",
-        depth: 10,
-      },
-    ],
+    [{ keyword, location_name: location, language_code: "en", depth: 20 }],
   );
 
   const task = data.tasks?.[0];
   if (!task || task.status_code !== 20000) {
-    console.warn(
-      `[dataforseo] SERP task warning for "${keyword}":`,
-      task?.status_message,
-    );
-    return { myRank: null, competitorRank: 1, topCompetitor: "Unknown", topCompetitorDomain: "", topCompetitors: [] };
+    console.warn(`[dataforseo] SERP failed for "${keyword}":`, task?.status_message);
+    return { myRank: null, organics: [] };
   }
 
-  const items = (task.result?.[0]?.items ?? []).filter(
-    (i) => i.type === "organic",
-  );
+  const items = (task.result?.[0]?.items ?? []).filter((i) => i.type === "organic");
 
   const businessLower = businessName.toLowerCase();
   const businessWords = businessLower.split(/\s+/).filter((w) => w.length > 2);
+  const bizDomain = businessDomain?.toLowerCase();
+
   let myRank: number | null = null;
-  let competitorRank = 1;
-  let topCompetitor = "Unknown";
-  let topCompetitorDomain = "";
-  const topCompetitors: string[] = [];
+  const organics: SerpOrganic[] = [];
 
   for (const item of items) {
     const title = (item.title ?? "").toLowerCase();
     const domain = (item.domain ?? "").toLowerCase();
 
     const isMe =
+      (bizDomain && domain.includes(bizDomain)) ||
       title.includes(businessLower) ||
       domain.includes(businessLower.replace(/\s+/g, "")) ||
-      businessWords.every((w) => title.includes(w));
+      (businessWords.length >= 2 && businessWords.every((w) => title.includes(w)));
 
     if (isMe && myRank === null) {
       myRank = item.rank_group;
-    }
-
-    if (!isMe) {
-      const name = item.title ?? item.domain ?? "Unknown";
-      topCompetitors.push(name);
-      if (topCompetitor === "Unknown") {
-        competitorRank = item.rank_group;
-        topCompetitor = name;
-        topCompetitorDomain = item.domain ?? "";
-      }
+    } else if (!isMe && item.domain) {
+      organics.push({
+        title: item.title ?? item.domain ?? "Unknown",
+        domain: item.domain,
+        rank: item.rank_group,
+      });
     }
   }
 
-  return { myRank, competitorRank, topCompetitor, topCompetitorDomain, topCompetitors };
+  return { myRank, organics };
 }
 
-// ── 4. Calculate missed traffic ─────────────────────────────────────────
+// ── 4. Find consistent primary competitor ────────────────────────────────
 
-export function calcMissedTraffic(
+function findPrimaryCompetitor(
+  serpResults: { organics: SerpOrganic[] }[],
+): { name: string; domain: string } | null {
+  const domainScores = new Map<string, { score: number; names: Map<string, number> }>();
+
+  for (const result of serpResults) {
+    for (const org of result.organics) {
+      const domain = org.domain.toLowerCase();
+      if (!domain) continue;
+
+      const entry = domainScores.get(domain) ?? { score: 0, names: new Map<string, number>() };
+      // Weight by position: rank 1 = 20pts, rank 20 = 1pt
+      entry.score += Math.max(1, 21 - org.rank);
+      entry.names.set(org.title, (entry.names.get(org.title) ?? 0) + 1);
+      domainScores.set(domain, entry);
+    }
+  }
+
+  if (domainScores.size === 0) return null;
+
+  const sorted = Array.from(domainScores.entries()).sort((a, b) => b[1].score - a[1].score);
+  const topDomain = sorted[0]![0];
+  const topEntry = sorted[0]![1];
+
+  const topName = Array.from(topEntry.names.entries())
+    .sort((a, b) => b[1] - a[1])[0]![0];
+
+  return { name: topName, domain: topDomain };
+}
+
+// ── 5. Priority scoring ─────────────────────────────────────────────────
+
+function calcPriority(
   volume: number,
-  myRank: number | null,
-): number {
-  const potentialCtr = CTR_CURVE[1]!;
-  const potentialTraffic = Math.round(volume * potentialCtr);
+  yourRank: number | null,
+  competitorRank: number | null,
+): "high" | "medium" | "low" {
+  if (!competitorRank) return "low";
+  const notRanked = !yourRank || yourRank > 20;
 
-  if (!myRank || myRank > 10) {
-    return potentialTraffic;
-  }
-
-  const currentCtr = CTR_CURVE[myRank] ?? 0.005;
-  const currentTraffic = Math.round(volume * currentCtr);
-  return Math.max(0, potentialTraffic - currentTraffic);
+  if (volume >= 100 && notRanked && competitorRank <= 5) return "high";
+  if (volume >= 50 && notRanked && competitorRank <= 10) return "high";
+  if (volume >= 100 && competitorRank <= 5) return "high";
+  if (volume >= 50 && (!yourRank || yourRank > competitorRank + 3)) return "medium";
+  if (volume >= 30 && competitorRank <= 10) return "medium";
+  return "low";
 }
 
-// ── 5. Full market scan pipeline ────────────────────────────────────────
+// ── 6. Full market scan pipeline ────────────────────────────────────────
 
-export type MarketKeyword = {
+export type GapKeyword = {
   keyword: string;
   volume: number;
-  myRank: number | null;
-  competitorRank: number;
-  topCompetitor: string;
-  missedTraffic: number;
+  yourRank: number | null;
+  competitorRank: number | null;
+  gap: number | null;
+  trafficOpportunity: number;
+  priority: "high" | "medium" | "low";
 };
 
 export type MarketScanResult = {
-  keywords: MarketKeyword[];
-  topCompetitors: string[];
-  primaryCompetitor: string;
-  marketOpportunity: number;
+  gapKeywords: GapKeyword[];
+  totalKeywordsAnalyzed: number;
   totalLocalSearches: number;
+  primaryCompetitor: { name: string; domain: string } | null;
+  topCompetitors: { name: string; domain: string }[];
+  estimatedMissedTraffic: number;
 };
 
 export async function runMarketScan(
@@ -300,66 +355,123 @@ export async function runMarketScan(
   category: string,
   websiteUrl?: string,
 ): Promise<MarketScanResult> {
-  // Step 1 — AI generates local commercial-intent keywords
+  // Step 1 — AI generates local keywords
   const aiKeywords = await generateLocalKeywords(openai, category, city, websiteUrl);
 
-  // Step 2 — Get real search volumes from DataForSEO
+  // Step 2 — Get real search volumes, drop zeros
   const seeds = await getSearchVolumes(aiKeywords, city);
-  console.log("[dataforseo] Keywords with volumes:", seeds.map((s) => `${s.keyword} (${s.volume})`));
+  console.log("[market-scan] Valid keywords with volume:", seeds.length);
 
-  // Step 3 — SERP rankings in parallel batches of 5 for speed
-  const allCompetitors: string[] = [];
-  const keywords: MarketKeyword[] = [];
+  if (seeds.length === 0) {
+    console.warn("[market-scan] No keywords had search volume — returning empty scan");
+    return {
+      gapKeywords: [],
+      totalKeywordsAnalyzed: 0,
+      totalLocalSearches: 0,
+      primaryCompetitor: null,
+      topCompetitors: [],
+      estimatedMissedTraffic: 0,
+    };
+  }
+
+  // Step 3 — SERP for each keyword (parallel batches of 5)
+  const bizDomain = websiteUrl
+    ?.replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0];
+
+  type SerpEntry = { keyword: string; volume: number; myRank: number | null; organics: SerpOrganic[] };
+  const serpResults: SerpEntry[] = [];
   const BATCH_SIZE = 5;
 
   for (let i = 0; i < seeds.length; i += BATCH_SIZE) {
     const batch = seeds.slice(i, i + BATCH_SIZE);
     const results = await Promise.allSettled(
-      batch.map((seed) => getSerpRankings(seed.keyword, city, businessName)),
+      batch.map((s) => getKeywordSerp(s.keyword, city, businessName, bizDomain)),
     );
 
     for (let j = 0; j < batch.length; j++) {
       const seed = batch[j]!;
       const result = results[j]!;
-
       if (result.status === "fulfilled") {
-        const serp = result.value;
-        keywords.push({
-          keyword: seed.keyword,
-          volume: seed.volume,
-          myRank: serp.myRank,
-          competitorRank: serp.competitorRank,
-          topCompetitor: serp.topCompetitor,
-          missedTraffic: calcMissedTraffic(seed.volume, serp.myRank),
-        });
-        allCompetitors.push(...serp.topCompetitors);
+        serpResults.push({ ...seed, ...result.value });
       } else {
-        console.warn(`[dataforseo] SERP failed for "${seed.keyword}":`, result.reason);
-        keywords.push({
-          keyword: seed.keyword,
-          volume: seed.volume,
-          myRank: null,
-          competitorRank: 1,
-          topCompetitor: "Unknown",
-          missedTraffic: calcMissedTraffic(seed.volume, null),
-        });
+        serpResults.push({ ...seed, myRank: null, organics: [] });
       }
     }
   }
 
-  // Dedupe & rank top competitors by frequency
-  const competitorCounts = new Map<string, number>();
-  for (const c of allCompetitors) {
-    competitorCounts.set(c, (competitorCounts.get(c) ?? 0) + 1);
+  // Step 4 — Find ONE consistent primary competitor
+  const primaryCompetitor = findPrimaryCompetitor(serpResults);
+  console.log("[market-scan] Primary competitor:", primaryCompetitor?.name, primaryCompetitor?.domain);
+
+  // Step 5 — Build gap keywords
+  const gapKeywords: GapKeyword[] = [];
+
+  for (const serp of serpResults) {
+    let competitorRank: number | null = null;
+
+    if (primaryCompetitor) {
+      const match = serp.organics.find(
+        (o) => o.domain.toLowerCase() === primaryCompetitor.domain.toLowerCase(),
+      );
+      competitorRank = match?.rank ?? null;
+    }
+
+    // Only include if competitor ranks AND outranks us (or we're not ranked)
+    const isGap =
+      competitorRank !== null &&
+      (serp.myRank === null || serp.myRank > competitorRank);
+
+    if (!isGap) continue;
+
+    const gap = serp.myRank !== null ? serp.myRank - competitorRank! : null;
+
+    const compCtr = CTR_CURVE[competitorRank!] ?? 0.005;
+    const myCtr = serp.myRank ? (CTR_CURVE[serp.myRank] ?? 0.005) : 0;
+    const trafficOpportunity = Math.round(serp.volume * Math.max(0, compCtr - myCtr));
+
+    gapKeywords.push({
+      keyword: serp.keyword,
+      volume: serp.volume,
+      yourRank: serp.myRank,
+      competitorRank,
+      gap,
+      trafficOpportunity,
+      priority: calcPriority(serp.volume, serp.myRank, competitorRank),
+    });
   }
-  const topCompetitors = Array.from(competitorCounts.entries())
-    .sort((a, b) => b[1] - a[1])
+
+  // Sort by traffic opportunity (highest first)
+  gapKeywords.sort((a, b) => b.trafficOpportunity - a.trafficOpportunity);
+
+  // Step 6 — Top competitors list
+  const domainCounts = new Map<string, { name: string; count: number }>();
+  for (const serp of serpResults) {
+    for (const org of serp.organics.slice(0, 5)) {
+      const d = org.domain.toLowerCase();
+      const entry = domainCounts.get(d) ?? { name: org.title, count: 0 };
+      entry.count++;
+      domainCounts.set(d, entry);
+    }
+  }
+  const topCompetitors = Array.from(domainCounts.entries())
+    .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 5)
-    .map(([name]) => name);
+    .map(([domain, { name }]) => ({ name, domain }));
 
-  const primaryCompetitor = topCompetitors[0] ?? "Unknown";
-  const marketOpportunity = keywords.reduce((s, k) => s + k.missedTraffic, 0);
-  const totalLocalSearches = keywords.reduce((s, k) => s + k.volume, 0);
+  const estimatedMissedTraffic = gapKeywords.reduce((s, k) => s + k.trafficOpportunity, 0);
+  const totalLocalSearches = serpResults.reduce((s, k) => s + k.volume, 0);
 
-  return { keywords, topCompetitors, primaryCompetitor, marketOpportunity, totalLocalSearches };
+  console.log("[market-scan] Gap keywords:", gapKeywords.length, "of", serpResults.length);
+  console.log("[market-scan] Estimated missed traffic:", estimatedMissedTraffic);
+
+  return {
+    gapKeywords,
+    totalKeywordsAnalyzed: serpResults.length,
+    totalLocalSearches,
+    primaryCompetitor,
+    topCompetitors,
+    estimatedMissedTraffic,
+  };
 }

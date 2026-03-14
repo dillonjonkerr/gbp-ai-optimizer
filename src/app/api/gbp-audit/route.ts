@@ -214,11 +214,11 @@ export async function POST(request: NextRequest) {
       runMarketScan(openai, businessName, city, industry, websiteUrl),
     ]);
     console.log("[gbp-audit] AI score:", analysis.score);
-    console.log("[gbp-audit] Market scan complete:", scanResult.keywords.length, "keywords");
+    console.log("[gbp-audit] Market scan complete:", scanResult.gapKeywords.length, "gap keywords of", scanResult.totalKeywordsAnalyzed);
 
     // Step 5 — Look up top competitor via Google Places for real comparison
     let competitorProfile = null;
-    const primaryCompetitorName = scanResult.primaryCompetitor;
+    const primaryCompetitorName = scanResult.primaryCompetitor?.name;
     if (primaryCompetitorName && primaryCompetitorName !== "Unknown") {
       const searchVariations = [
         primaryCompetitorName,
@@ -263,16 +263,11 @@ export async function POST(request: NextRequest) {
     };
 
     const marketScan = {
-      keywords: scanResult.keywords.map((k) => ({
-        keyword: k.keyword,
-        volume: k.volume,
-        yourRank: k.myRank,
-        topCompetitorRank: k.competitorRank,
-        topCompetitor: k.topCompetitor,
-        missedTraffic: k.missedTraffic,
-      })),
-      topCompetitors: scanResult.topCompetitors,
-      estimatedMissedTraffic: scanResult.marketOpportunity,
+      keywords: scanResult.gapKeywords,
+      totalKeywordsAnalyzed: scanResult.totalKeywordsAnalyzed,
+      primaryCompetitorName: scanResult.primaryCompetitor?.name ?? "Top Competitor",
+      topCompetitors: scanResult.topCompetitors.map((c) => c.name),
+      estimatedMissedTraffic: scanResult.estimatedMissedTraffic,
       radiusMiles: 15,
       totalLocalSearches: scanResult.totalLocalSearches,
       yourProfile,
