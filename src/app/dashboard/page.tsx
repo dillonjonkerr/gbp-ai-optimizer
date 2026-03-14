@@ -22,6 +22,10 @@ const topKeywords = [
   { keyword: 'local plumber', rank: 5, volume: 980, trend: 'stable' },
 ]
 
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(' ')
+}
+
 export default function DashboardOverview() {
   return (
     <>
@@ -32,48 +36,14 @@ export default function DashboardOverview() {
       
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
-          {/* Metrics Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <MetricCard
-              title="Visibility Score"
-              value="72"
-              change={8}
-              changeLabel="vs last month"
-              icon={Eye}
-              iconColor="text-primary"
-              iconBgColor="bg-primary/10"
-            />
-            <MetricCard
-              title="Keywords Ranked"
-              value="45"
-              change={12}
-              changeLabel="vs last month"
-              icon={Search}
-              iconColor="text-green-500"
-              iconBgColor="bg-green-500/10"
-            />
-            <MetricCard
-              title="Competitor Gap"
-              value="23"
-              change={-5}
-              changeLabel="keywords behind"
-              icon={Users}
-              iconColor="text-amber-500"
-              iconBgColor="bg-amber-500/10"
-            />
-            <MetricCard
-              title="Missed Traffic"
-              value="2.8K"
-              change={-15}
-              changeLabel="vs last month"
-              icon={TrendingDown}
-              iconColor="text-red-500"
-              iconBgColor="bg-red-500/10"
-            />
+            <MetricCard title="Visibility Score" value="72" change={8} changeLabel="vs last month" icon={Eye} iconColor="text-primary" iconBgColor="bg-primary/10" />
+            <MetricCard title="Keywords Ranked" value="45" change={12} changeLabel="vs last month" icon={Search} iconColor="text-green-500" iconBgColor="bg-green-500/10" />
+            <MetricCard title="Competitor Gap" value="23" change={-5} changeLabel="keywords behind" icon={Users} iconColor="text-amber-500" iconBgColor="bg-amber-500/10" />
+            <MetricCard title="Missed Traffic" value="2.8K" change={-15} changeLabel="vs last month" icon={TrendingDown} iconColor="text-red-500" iconBgColor="bg-red-500/10" />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Optimization Tasks */}
             <Card className="border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
@@ -81,35 +51,26 @@ export default function DashboardOverview() {
                   <CardDescription>AI-recommended improvements</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" className="text-primary">
-                  View all
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                  View all <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {recentTasks.map((task, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3"
-                  >
+                  <div key={index} className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
                     <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          'flex h-8 w-8 items-center justify-center rounded-full',
-                          task.status === 'completed' && 'bg-green-500/10',
-                          task.status === 'in-progress' && 'bg-amber-500/10',
-                          task.status === 'pending' && 'bg-muted'
-                        )}
-                      >
+                      <div className={cn(
+                        'flex h-8 w-8 items-center justify-center rounded-full',
+                        task.status === 'completed' && 'bg-green-500/10',
+                        task.status === 'in-progress' && 'bg-amber-500/10',
+                        task.status === 'pending' && 'bg-muted'
+                      )}>
                         {task.status === 'completed' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
                         {task.status === 'in-progress' && <Clock className="h-4 w-4 text-amber-500" />}
                         {task.status === 'pending' && <AlertTriangle className="h-4 w-4 text-muted-foreground" />}
                       </div>
                       <span className="text-sm font-medium text-foreground">{task.title}</span>
                     </div>
-                    <Badge
-                      variant={task.impact === 'high' ? 'default' : 'secondary'}
-                      className={task.impact === 'high' ? 'bg-primary' : ''}
-                    >
+                    <Badge variant={task.impact === 'high' ? 'default' : 'secondary'} className={task.impact === 'high' ? 'bg-primary' : ''}>
                       {task.impact} impact
                     </Badge>
                   </div>
@@ -117,7 +78,6 @@ export default function DashboardOverview() {
               </CardContent>
             </Card>
 
-            {/* Top Keywords */}
             <Card className="border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
@@ -125,8 +85,7 @@ export default function DashboardOverview() {
                   <CardDescription>Your best performing search terms</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" className="text-primary">
-                  View all
-                  <ArrowRight className="ml-1 h-4 w-4" />
+                  View all <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </CardHeader>
               <CardContent>
@@ -137,9 +96,7 @@ export default function DashboardOverview() {
                         <span className="text-sm font-medium text-foreground">{kw.keyword}</span>
                         <div className="flex items-center gap-3 text-sm">
                           <span className="text-muted-foreground">{kw.volume.toLocaleString()} /mo</span>
-                          <Badge variant="outline" className="font-mono">
-                            #{kw.rank}
-                          </Badge>
+                          <Badge variant="outline" className="font-mono">#{kw.rank}</Badge>
                         </div>
                       </div>
                       <Progress value={((10 - Math.min(kw.rank, 10)) / 10) * 100} className="h-1.5" />
@@ -150,7 +107,6 @@ export default function DashboardOverview() {
             </Card>
           </div>
 
-          {/* Profile Completeness */}
           <Card className="border-border bg-card">
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Profile Completeness</CardTitle>
@@ -170,18 +126,13 @@ export default function DashboardOverview() {
                     { label: 'Services', status: 'partial' },
                     { label: 'Q&A', status: 'missing' },
                   ].map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3"
-                    >
-                      <div
-                        className={cn(
-                          'h-2 w-2 rounded-full',
-                          item.status === 'complete' && 'bg-green-500',
-                          item.status === 'partial' && 'bg-amber-500',
-                          item.status === 'missing' && 'bg-red-500'
-                        )}
-                      />
+                    <div key={index} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3">
+                      <div className={cn(
+                        'h-2 w-2 rounded-full',
+                        item.status === 'complete' && 'bg-green-500',
+                        item.status === 'partial' && 'bg-amber-500',
+                        item.status === 'missing' && 'bg-red-500'
+                      )} />
                       <span className="text-sm text-foreground">{item.label}</span>
                     </div>
                   ))}
@@ -193,8 +144,4 @@ export default function DashboardOverview() {
       </main>
     </>
   )
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ')
 }

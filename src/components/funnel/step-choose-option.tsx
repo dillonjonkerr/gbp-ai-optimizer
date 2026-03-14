@@ -28,7 +28,6 @@ export function StepChooseOption({ onSelectDIY, onSelectAI }: StepChooseOptionPr
   return (
     <div className="flex min-h-[calc(100vh-56px)] flex-col px-5 py-8 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-10">
       <div className="mx-auto w-full max-w-md space-y-6">
-        {/* Header */}
         <div className="space-y-3 text-center animate-fade-in-up">
           <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
             Choose your path forward
@@ -38,10 +37,8 @@ export function StepChooseOption({ onSelectDIY, onSelectAI }: StepChooseOptionPr
           </p>
         </div>
 
-        {/* Options */}
         <div className="space-y-4">
-          {/* DIY Option */}
-          <Card className="border-2 border-border bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-lg animate-fade-in-up opacity-0 animation-delay-100">
+          <Card className="border-2 border-border bg-card transition-all duration-300 hover:border-primary/50 hover:shadow-lg animate-fade-in-up animation-delay-100">
             <CardHeader className="pb-3 p-5">
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted shrink-0 shadow-lg">
@@ -75,8 +72,7 @@ export function StepChooseOption({ onSelectDIY, onSelectAI }: StepChooseOptionPr
             </CardContent>
           </Card>
 
-          {/* AI Option */}
-          <Card className="border-2 border-primary bg-card relative overflow-hidden shadow-xl shadow-primary/20 animate-fade-in-up opacity-0 animation-delay-200">
+          <Card className="border-2 border-primary bg-card relative overflow-hidden shadow-xl shadow-primary/20 animate-fade-in-up animation-delay-200">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
             <div className="absolute top-4 right-4">
               <Badge className="bg-primary text-primary-foreground font-bold px-3 py-1 shadow-lg shadow-primary/30">

@@ -7,6 +7,7 @@ import { StepBusinessScan } from '@/components/funnel/step-business-scan'
 import { StepMarketScan } from '@/components/funnel/step-market-scan'
 import { StepResults } from '@/components/funnel/step-results'
 import { StepChooseOption } from '@/components/funnel/step-choose-option'
+import { ReviewsSection } from '@/components/reviews-section'
 import { useRouter } from 'next/navigation'
 
 type FunnelStep = 1 | 2 | 3 | 4
@@ -63,6 +64,16 @@ export default function OptimizerFunnelPage() {
           <StepChooseOption onSelectDIY={handleSelectDIY} onSelectAI={handleSelectAI} />
         )}
       </main>
+
+      <ReviewsSection />
+
+      <footer className="border-t-2 border-border bg-background py-6">
+        <div className="mx-auto max-w-4xl px-5 text-center sm:px-6">
+          <p className="text-sm font-semibold text-muted-foreground">
+            Paint & Profits - Marketing for Painters
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }

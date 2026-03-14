@@ -44,12 +44,10 @@ export function SidebarNav() {
         collapsed ? 'w-16' : 'w-64'
       )}
     >
-      {/* Logo */}
       <div className={cn('flex h-14 items-center border-b border-sidebar-border px-3', collapsed && 'justify-center')}>
         <Logo size={collapsed ? 'sm' : 'sm'} />
       </div>
 
-      {/* Navigation */}
       <ScrollArea className="flex-1 px-2 py-3">
         <nav className="space-y-1">
           {navItems.map((item) => {
@@ -74,7 +72,6 @@ export function SidebarNav() {
         </nav>
       </ScrollArea>
 
-      {/* Bottom section */}
       <div className="border-t border-sidebar-border p-2 space-y-1">
         {bottomNavItems.map((item) => {
           const isActive = pathname === item.href
