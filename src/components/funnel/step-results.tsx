@@ -3,9 +3,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowRight, SearchX, Target, TrendingUp, Star, AlertTriangle, MapPin, Trophy, Zap } from 'lucide-react'
+import { ArrowRight, SearchX, Target, TrendingUp, Star, AlertTriangle, Trophy, Zap } from 'lucide-react'
 import { ImageIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface StepResultsProps {
   businessData: {
@@ -30,21 +29,6 @@ export function StepResults({ businessData, onNext }: StepResultsProps) {
     competitorPhotos: 56,
     keywordsYoureMissing: 72,
     competitorName: 'Pro Painters Plus',
-  }
-
-  const geoGridData = [
-    [8, 12, 15, 18, 20],
-    [5, 7, 10, 14, 17],
-    [3, 4, 6, 9, 12],
-    [4, 5, 8, 11, 15],
-    [7, 10, 13, 16, 19],
-  ]
-
-  const getGridColor = (rank: number) => {
-    if (rank <= 3) return 'bg-green-500'
-    if (rank <= 7) return 'bg-amber-400'
-    if (rank <= 10) return 'bg-orange-500'
-    return 'bg-red-500'
   }
 
   return (
@@ -102,54 +86,6 @@ export function StepResults({ businessData, onNext }: StepResultsProps) {
                   </div>
                   <span className="text-xs font-bold text-muted-foreground">Goal: 80%+</span>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Geo Grid Visualization */}
-        <Card className="border-2 border-border bg-card shadow-lg animate-fade-in-up animation-delay-100">
-          <CardHeader className="pb-2 px-5 pt-5">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-black flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Your Map Pack Rankings
-              </CardTitle>
-              <span className="text-xs font-bold text-muted-foreground">{businessData.city}</span>
-            </div>
-          </CardHeader>
-          <CardContent className="p-5 pt-2">
-            <div className="grid grid-cols-5 gap-1.5 mb-4">
-              {geoGridData.flat().map((rank, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'aspect-square rounded-lg flex items-center justify-center text-xs font-black text-white transition-all shadow-sm',
-                    getGridColor(rank)
-                  )}
-                >
-                  {rank}
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center justify-between text-xs font-semibold">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded bg-green-500"></span>
-                  Top 3
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded bg-amber-400"></span>
-                  4-7
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded bg-orange-500"></span>
-                  8-10
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded bg-red-500"></span>
-                  11+
-                </span>
               </div>
             </div>
           </CardContent>
