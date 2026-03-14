@@ -22,6 +22,7 @@ export default function FunnelPage() {
   const [currentStep, setCurrentStep] = useState<FunnelStep>(1)
   const [businessData, setBusinessData] = useState<BusinessData | null>(null)
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null)
+  const [qaMode, setQaMode] = useState(false)
 
   const handleStep1Complete = (data: BusinessData) => {
     setBusinessData(data)
@@ -46,7 +47,7 @@ export default function FunnelPage() {
   }
 
   return (
-    <div data-id="PG" className="min-h-screen bg-background">
+    <div data-id="PG" className={`min-h-screen bg-background ${qaMode ? 'qa-debug' : ''}`}>
       <header data-id="HD" className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div data-id="HI" className="flex h-16 items-center justify-between px-5 sm:h-[72px] sm:px-6">
           <Logo size="md" />
@@ -74,6 +75,18 @@ export default function FunnelPage() {
           </p>
         </div>
       </footer>
+
+      {/* QA toggle — bottom-right corner */}
+      <button
+        onClick={() => setQaMode(prev => !prev)}
+        className="fixed bottom-4 right-4 z-[9999] rounded-full px-3 py-1.5 text-xs font-bold shadow-lg"
+        style={{
+          background: qaMode ? '#ff0064' : '#222',
+          color: '#fff',
+        }}
+      >
+        {qaMode ? 'QA ON' : 'QA'}
+      </button>
     </div>
   )
 }
