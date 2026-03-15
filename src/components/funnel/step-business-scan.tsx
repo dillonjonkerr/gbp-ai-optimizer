@@ -1,18 +1,47 @@
 'use client'
 
+/* =============================================================
+   STEP 1 — BUSINESS INFO (Landing Page)
+   
+   PURPOSE:  Collect business name, city, and optional website.
+             Hook cold traffic with problem-first messaging.
+   
+   SECTIONS:
+     1. Imports
+     2. Types & Interfaces
+     3. Static Content (copy, trust items, scan reveals)
+     4. Component
+        a. State
+        b. Effects (carousel, outside-click)
+        c. Handlers (autocomplete, prediction select, submit)
+        d. Render
+           - Hero (problem headline + agitation)
+           - Social proof
+           - Business preview card (from Google Places)
+           - Form (business name + city + website + submit)
+           - Trust indicators
+           - Facebook reviews widget
+   ============================================================= */
+
+
+/* ── 1. IMPORTS ── */
+
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FacebookReviewsWidget } from '@/components/facebook-reviews-widget'
 import {
   Search, ArrowRight, MapPinned, Building, Shield, CreditCard,
-  Paintbrush, Star, MapPin, Phone, Globe, ImageIcon, Loader2, X,
-  TrendingDown, Users, Clock, Zap
+  Paintbrush, Star, MapPin, Phone, ImageIcon, Loader2, X,
+  TrendingDown, Clock, Zap, Globe
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+
+/* ── 2. TYPES ── */
+
 interface StepBusinessScanProps {
-  onNext: (data: { businessName: string; city: string }) => void
+  onNext: (data: { businessName: string; city: string; website: string }) => void
 }
 
 interface Prediction {
@@ -34,6 +63,10 @@ interface BusinessPreview {
   category: string
 }
 
+
+/* ── 3. STATIC CONTENT ── */
+
+// Rotating list of what the free scan reveals
 const scanReveals = [
   'Which competitor ranks #1 for your keywords',
   'How many searches you lose every month',
@@ -43,36 +76,54 @@ const scanReveals = [
   'AI-generated fix plan with exact steps',
 ]
 
+// Trust badges shown below the CTA
 const trustItems = [
-  { icon: Clock, text: 'Takes 60 seconds' },
-  { icon: Shield, text: 'No signup required' },
+  { icon: Clock,      text: 'Takes 60 seconds' },
+  { icon: Shield,     text: 'No signup required' },
   { icon: CreditCard, text: 'No credit card' },
   { icon: Paintbrush, text: 'Built for painters' },
 ]
 
+
+/* ── 4. COMPONENT ── */
+
 export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
+
+  /* ── 4a. STATE ── */
+
+  // Form fields
   const [businessName, setBusinessName] = useState('')
   const [city, setCity] = useState('')
+  const [website, setWebsite] = useState('')
   const [isHovering, setIsHovering] = useState(false)
 
+  // Google Places autocomplete
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Business preview card (populated after selecting a prediction)
   const [preview, setPreview] = useState<BusinessPreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
 
+  // Rotating carousel index
   const [revealIdx, setRevealIdx] = useState(0)
 
+  // Form is valid when business name and city are filled
   const isValid = businessName.trim() && city.trim()
 
+
+  /* ── 4b. EFFECTS ── */
+
+  // Rotate "what the scan reveals" carousel every 2.8 seconds
   useEffect(() => {
     const t = setInterval(() => setRevealIdx(i => (i + 1) % scanReveals.length), 2800)
     return () => clearInterval(t)
   }, [])
 
+  // Close autocomplete dropdown when clicking outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -83,6 +134,10 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+
+  /* ── 4c. HANDLERS ── */
+
+  // Fetch autocomplete predictions from Google Places
   const fetchPredictions = useCallback(async (q: string) => {
     if (q.length < 2) { setPredictions([]); return }
     try {
@@ -93,6 +148,7 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     } catch { setPredictions([]) }
   }, [])
 
+  // Called on every keystroke in the business name field
   const handleBusinessNameChange = (val: string) => {
     setBusinessName(val)
     setSelectedPlaceId(null)
@@ -101,12 +157,14 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     debounceRef.current = setTimeout(() => fetchPredictions(val), 300)
   }
 
+  // Called when user picks a prediction from the dropdown
   const handleSelectPrediction = async (pred: Prediction) => {
     setBusinessName(pred.mainText)
     setShowDropdown(false)
     setSelectedPlaceId(pred.placeId)
     setPredictions([])
 
+    // Auto-fill city from the prediction's secondary text
     const parts = pred.secondaryText.split(',')
     if (parts.length >= 2) {
       setCity(parts.slice(0, 2).join(',').trim())
@@ -114,6 +172,7 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
       setCity(parts[0].trim())
     }
 
+    // Fetch business preview data
     setPreviewLoading(true)
     try {
       const res = await fetch('/api/business-preview', {
@@ -124,6 +183,10 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
       if (res.ok) {
         const data = await res.json()
         setPreview(data)
+        // Auto-fill website if available from Google data
+        if (data.website && !website) {
+          setWebsite(data.website)
+        }
       }
     } catch (err) {
       console.error('[preview]', err)
@@ -132,45 +195,54 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
     }
   }
 
+  // Clear the preview and reset all fields
   const clearPreview = () => {
     setPreview(null)
     setSelectedPlaceId(null)
     setBusinessName('')
     setCity('')
+    setWebsite('')
   }
 
+  // Submit the form → advance to Step 2
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (isValid) {
-      onNext({ businessName, city })
+      onNext({ businessName, city, website })
     }
   }
+
+
+  /* ── 4d. RENDER ── */
 
   return (
     <div data-id="S1" className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-8">
       <div data-id="SW" className="mx-auto w-full max-w-lg flex-1 flex flex-col justify-center">
 
-        {/* Problem-First Hero — Schwartz Level 2 (Problem-Aware) */}
+
+        {/* ────────────────────────────────────────────
+            HERO — Problem headline + agitation
+        ──────────────────────────────────────────── */}
         <div data-id="HR" className="text-center mb-6">
 
-          {/* Agitation badge */}
+          {/* Red agitation badge */}
           <div data-id="AB" className="inline-flex items-center gap-2 rounded-full bg-red-50 border border-red-200 px-4 py-1.5 text-red-700 text-xs font-bold mb-4 animate-scale-in">
             <TrendingDown className="h-3.5 w-3.5" />
             Your competitors are outranking you on Google
           </div>
 
-          {/* Problem headline */}
+          {/* Main headline */}
           <h1 data-id="H1" className="text-[1.65rem] font-black tracking-tight text-foreground sm:text-[2rem] leading-[1.15] mb-3">
             Homeowners are searching for painters in your area.{' '}
             <span className="text-primary">They&apos;re hiring your competitors instead.</span>
           </h1>
 
-          {/* Agitation sub-copy */}
+          {/* Sub-headline */}
           <p data-id="H2" className="text-[15px] text-muted-foreground font-medium leading-relaxed mb-4 max-w-md mx-auto">
             Most painting contractors lose 50+ leads every month because their Google Business Profile has gaps they can&apos;t see. Our AI finds them in 60 seconds.
           </p>
 
-          {/* What the scan reveals — rotating */}
+          {/* Rotating carousel — what the scan reveals */}
           <div data-id="CR" className="h-7 overflow-hidden relative mb-1">
             {scanReveals.map((item, i) => (
               <div
@@ -187,7 +259,10 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </div>
         </div>
 
-        {/* Social proof — results-focused */}
+
+        {/* ────────────────────────────────────────────
+            SOCIAL PROOF — overlapping profile photos
+        ──────────────────────────────────────────── */}
         <div data-id="PC" className="flex items-center justify-center gap-3 mb-5">
           <div className="flex -space-x-2.5">
             {[
@@ -210,7 +285,13 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </span>
         </div>
 
-        {/* GBP Preview Card */}
+
+        {/* ────────────────────────────────────────────
+            BUSINESS PREVIEW CARD
+            Shows after user picks an autocomplete result
+        ──────────────────────────────────────────── */}
+
+        {/* Loading state */}
         {previewLoading && (
           <div data-id="PL" className="mb-4 flex items-center justify-center gap-2 rounded-xl border-2 border-primary/30 bg-primary/5 p-5">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -218,8 +299,10 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </div>
         )}
 
+        {/* Preview card */}
         {preview && !previewLoading && (
           <div data-id="GP" className="mb-4 rounded-xl border-2 border-border bg-card shadow-lg overflow-hidden animate-fade-in-up">
+            {/* Card header — Google branding + close button */}
             <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border">
               <div className="flex items-center gap-1.5">
                 <svg className="h-4 w-4" viewBox="0 0 48 48"><path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 019.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.98 23.98 0 000 24c0 3.77.9 7.34 2.44 10.52l8.09-5.93z"/><path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -229,8 +312,11 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
                 <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </div>
+
+            {/* Card body — photo + info */}
             <div className="p-4">
               <div className="flex gap-3">
+                {/* Business photo or placeholder */}
                 {preview.photoUrls?.[0] ? (
                   <img
                     src={preview.photoUrls[0]}
@@ -242,8 +328,12 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
                     <Building className="h-7 w-7 text-primary" />
                   </div>
                 )}
+
+                {/* Business details */}
                 <div className="min-w-0 flex-1">
                   <h3 data-id="GN" className="font-black text-foreground text-sm truncate">{preview.name}</h3>
+
+                  {/* Rating + stars */}
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="text-xs font-bold text-foreground">{preview.rating.toFixed(1)}</span>
                     <div className="flex">
@@ -259,10 +349,14 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
                     </div>
                     <span className="text-[11px] text-muted-foreground font-semibold">({preview.reviewCount})</span>
                   </div>
+
+                  {/* Address */}
                   <div className="flex items-center gap-1 mt-1">
                     <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
                     <span className="text-[11px] text-muted-foreground font-medium truncate">{preview.address}</span>
                   </div>
+
+                  {/* Phone + photo count */}
                   <div className="flex items-center gap-3 mt-1.5">
                     {preview.phone && (
                       <span className="flex items-center gap-1 text-[11px] text-muted-foreground font-medium">
@@ -281,12 +375,16 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </div>
         )}
 
-        {/* Form */}
+
+        {/* ────────────────────────────────────────────
+            FORM — Business name, city, website, submit
+        ──────────────────────────────────────────── */}
         <form data-id="FM" onSubmit={handleSubmit} className="space-y-3">
           <div data-id="FG" className="flex w-full flex-col gap-3">
-            {/* Business Name with autocomplete */}
+
+            {/* Business Name — with autocomplete dropdown */}
             <div data-id="BN" className="relative" ref={dropdownRef}>
-              <div data-id="BI" className="relative">
+              <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-md shadow-primary/20">
                   <Building className="h-4 w-4" />
                 </div>
@@ -302,6 +400,7 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
                 />
               </div>
 
+              {/* Autocomplete dropdown */}
               {showDropdown && predictions.length > 0 && (
                 <div data-id="AD" className="absolute z-50 mt-1 w-full rounded-xl border-2 border-border bg-card shadow-xl overflow-hidden animate-fade-in-up">
                   {predictions.map((p) => (
@@ -322,24 +421,38 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
               )}
             </div>
 
-            {/* City */}
+            {/* City / Service Area */}
             <div data-id="CT" className="relative">
-              <div data-id="CI" className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-md shadow-primary/20">
-                  <MapPinned className="h-4 w-4" />
-                </div>
-                <Input
-                  id="city"
-                  type="text"
-                  placeholder="City / Service Area"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="pl-14 h-13 text-base font-semibold border-2 rounded-xl placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-primary/20"
-                />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shadow-md shadow-primary/20">
+                <MapPinned className="h-4 w-4" />
               </div>
+              <Input
+                id="city"
+                type="text"
+                placeholder="City / Service Area"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="pl-14 h-13 text-base font-semibold border-2 rounded-xl placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-primary/20"
+              />
+            </div>
+
+            {/* Website (optional) */}
+            <div data-id="WB" className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <Globe className="h-4 w-4" />
+              </div>
+              <Input
+                id="website"
+                type="url"
+                placeholder="Website (optional)"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                className="pl-14 h-13 text-base font-semibold border-2 rounded-xl placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-primary/20"
+              />
             </div>
           </div>
 
+          {/* Submit button */}
           <Button
             data-id="SB"
             type="submit"
@@ -357,16 +470,16 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </Button>
         </form>
 
-        {/* Trust indicators — static row (Cialdini: reduce friction) */}
+
+        {/* ────────────────────────────────────────────
+            TRUST INDICATORS — static row below CTA
+        ──────────────────────────────────────────── */}
         <div data-id="TI" className="pt-4">
           <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2">
             {trustItems.map((item) => {
               const Icon = item.icon
               return (
-                <span
-                  key={item.text}
-                  className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground"
-                >
+                <span key={item.text} className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
                   <Icon className="h-3.5 w-3.5 text-primary" />
                   {item.text}
                 </span>
@@ -375,10 +488,14 @@ export function StepBusinessScan({ onNext }: StepBusinessScanProps) {
           </div>
         </div>
 
-        {/* Facebook Reviews */}
+
+        {/* ────────────────────────────────────────────
+            FACEBOOK REVIEWS WIDGET
+        ──────────────────────────────────────────── */}
         <div data-id="FR" className="mt-5 -mx-4 sm:-mx-6">
           <FacebookReviewsWidget />
         </div>
+
       </div>
     </div>
   )

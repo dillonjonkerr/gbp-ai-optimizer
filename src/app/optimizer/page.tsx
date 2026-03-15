@@ -1,13 +1,17 @@
 'use client'
 
+/* =============================================================
+   /optimizer — Alternate funnel page (same flow as /)
+   ============================================================= */
+
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/logo'
 import { ProgressSteps } from '@/components/funnel/progress-steps'
 import { StepBusinessScan } from '@/components/funnel/step-business-scan'
 import { StepMarketScan } from '@/components/funnel/step-market-scan'
 import { StepResults } from '@/components/funnel/step-results'
 import { StepChooseOption } from '@/components/funnel/step-choose-option'
-import { useRouter } from 'next/navigation'
 import type { AuditResult } from '@/lib/types'
 
 type FunnelStep = 1 | 2 | 3 | 4
@@ -15,6 +19,7 @@ type FunnelStep = 1 | 2 | 3 | 4
 interface BusinessData {
   businessName: string
   city: string
+  website: string
 }
 
 export default function OptimizerFunnelPage() {
@@ -47,15 +52,17 @@ export default function OptimizerFunnelPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b-2 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="flex h-16 items-center justify-between px-5 sm:h-[72px] sm:px-6">
-          <Logo size="md" />
+      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="flex h-14 items-center justify-between px-4 sm:h-16 sm:px-6">
+          <Logo size="sm" />
           <ProgressSteps currentStep={currentStep} totalSteps={4} />
         </div>
       </header>
 
       <main>
-        {currentStep === 1 && <StepBusinessScan onNext={handleStep1Complete} />}
+        {currentStep === 1 && (
+          <StepBusinessScan onNext={handleStep1Complete} />
+        )}
         {currentStep === 2 && businessData && (
           <StepMarketScan businessData={businessData} onComplete={handleStep2Complete} />
         )}
