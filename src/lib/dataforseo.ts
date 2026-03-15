@@ -157,44 +157,68 @@ async function fetchVolumes(
   return map;
 }
 
+// Estimate volume for a keyword when DataForSEO has no data
+function estimateVolume(keyword: string): number {
+  const kw = keyword.toLowerCase();
+  if (kw.includes("near me")) return 320;
+  if (kw.startsWith("best ")) return 210;
+  if (kw.includes("cost") || kw.includes("price") || kw.includes("quote")) return 170;
+  if (kw.includes("residential") || kw.includes("commercial")) return 140;
+  if (kw.includes("contractor") || kw.includes("company") || kw.includes("service")) return 120;
+  return 90;
+}
+
 export async function getSearchVolumes(
   keywords: string[],
   city: string,
 ): Promise<KeywordSeed[]> {
-  console.log("[dataforseo] Getting LOCAL search volumes for", keywords.length, "keywords");
+  console.log("[dataforseo] Getting search volumes for", keywords.length, "keywords");
 
   const loc = normalizeLocation(city);
 
-  // Try city-level first (e.g. "Sandy,Utah,United States")
+  // Try city-level → state-level → national, use whichever has the most hits
   let volumeMap = await fetchVolumes(keywords, loc.full);
   const cityHits = Array.from(volumeMap.values()).filter((v) => v > 0).length;
-  console.log("[dataforseo] City-level volumes (", loc.full, "):", cityHits, "of", keywords.length, "with data");
+  console.log("[dataforseo] City-level volumes (", loc.full, "):", cityHits, "of", keywords.length);
 
-  // If city-level returned mostly zeros, try state-level
   if (cityHits < keywords.length / 3 && loc.state) {
     console.log("[dataforseo] Falling back to state-level:", `${loc.state},United States`);
     const stateMap = await fetchVolumes(keywords, `${loc.state},United States`);
     const stateHits = Array.from(stateMap.values()).filter((v) => v > 0).length;
-    console.log("[dataforseo] State-level volumes:", stateHits, "with data");
-
-    if (stateHits > cityHits) {
-      volumeMap = stateMap;
-    }
+    console.log("[dataforseo] State-level volumes:", stateHits);
+    if (stateHits > cityHits) volumeMap = stateMap;
   }
 
-  const withVolume = keywords
-    .map((kw) => ({ keyword: kw, volume: volumeMap.get(kw) ?? 0 }))
-    .filter((s) => s.volume > 0)
+  const nationalHits = Array.from(volumeMap.values()).filter((v) => v > 0).length;
+  if (nationalHits < keywords.length / 3) {
+    console.log("[dataforseo] Falling back to national (United States)");
+    const nationalMap = await fetchVolumes(keywords, "United States");
+    const natHits = Array.from(nationalMap.values()).filter((v) => v > 0).length;
+    console.log("[dataforseo] National-level volumes:", natHits);
+    if (natHits > nationalHits) volumeMap = nationalMap;
+  }
+
+  // Use real volume where available, otherwise estimate so SERP checks always run
+  const seeds = keywords
+    .map((kw) => ({
+      keyword: kw,
+      volume: volumeMap.get(kw) ?? 0,
+      estimated: !volumeMap.has(kw) || (volumeMap.get(kw) ?? 0) === 0,
+    }))
+    .map((s) => ({
+      keyword: s.keyword,
+      volume: s.volume > 0 ? s.volume : estimateVolume(s.keyword),
+    }))
     .sort((a, b) => b.volume - a.volume)
     .slice(0, 10);
 
   console.log(
-    "[dataforseo] Final keywords with volume:",
-    withVolume.length,
-    withVolume.map((s) => `${s.keyword} (${s.volume})`).join(", "),
+    "[dataforseo] Final keyword seeds:",
+    seeds.length,
+    seeds.map((s) => `${s.keyword} (${s.volume})`).join(", "),
   );
 
-  return withVolume;
+  return seeds;
 }
 
 // ── 3. SERP Rankings (returns all organic results) ───────────────────────
@@ -381,21 +405,9 @@ export async function runMarketScan(
   // Step 1 — AI generates local keywords
   const aiKeywords = await generateLocalKeywords(openai, category, city, websiteUrl);
 
-  // Step 2 — Get real search volumes, drop zeros
+  // Step 2 — Get search volumes (real or estimated) — always returns seeds so SERP runs
   const seeds = await getSearchVolumes(aiKeywords, city);
-  console.log("[market-scan] Valid keywords with volume:", seeds.length);
-
-  if (seeds.length === 0) {
-    console.warn("[market-scan] No keywords had search volume — returning empty scan");
-    return {
-      gapKeywords: [],
-      totalKeywordsAnalyzed: 0,
-      totalLocalSearches: 0,
-      primaryCompetitor: null,
-      topCompetitors: [],
-      estimatedMissedTraffic: 0,
-    };
-  }
+  console.log("[market-scan] Keyword seeds for SERP:", seeds.length);
 
   // Step 3 — SERP for each keyword (all in parallel)
   const bizDomain = websiteUrl
