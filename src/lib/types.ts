@@ -50,7 +50,7 @@ export type MarketScan = {
   radiusMiles: number;
   totalLocalSearches: number;
   yourProfile: BusinessProfile;
-  competitorProfile: BusinessProfile | null;
+  competitorProfile: BusinessProfile;
 };
 
 // Step 3 — Comparison report

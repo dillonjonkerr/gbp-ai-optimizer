@@ -29,7 +29,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   ArrowRight, TrendingUp, Star, AlertTriangle,
-  Trophy, Zap, ImageIcon, DollarSign, Sparkles
+  Trophy, Zap, ImageIcon, DollarSign, Sparkles,
+  Globe, Phone, CheckCircle, XCircle, Camera, MessageSquare
 } from 'lucide-react'
 import type { AuditResult } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -72,10 +73,9 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
   const scoreBg    = visibilityScore <= 40 ? 'bg-red-500'   : visibilityScore <= 65 ? 'bg-amber-500'   : 'bg-green-500'
   const scoreLabel = visibilityScore <= 40 ? 'Poor'         : visibilityScore <= 65 ? 'Below Average'  : 'Good'
 
-  // Your profile vs competitor
-  const you      = marketScan.yourProfile
-  const comp     = marketScan.competitorProfile
-  const compName = marketScan.primaryCompetitorName
+  // Your profile vs competitor (always guaranteed)
+  const you  = marketScan.yourProfile
+  const comp = marketScan.competitorProfile
 
   // Estimated monthly revenue lost (missed searches × 8% conversion × $3,500 avg job)
   const estimatedMonthlyValue = Math.round(missedSearches * 0.08 * 3500)
@@ -163,49 +163,95 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
         </Card>
 
 
-        {/* ── COMPETITOR COMPARISON — head-to-head grid ── */}
-        {comp && (
-          <Card data-id="CC" className="border-2 border-border bg-card shadow-lg animate-fade-in-up animation-delay-300">
-            <CardHeader className="pb-2 px-5 pt-5">
-              <CardTitle className="text-sm font-black flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-amber-500" />
-                You vs. {compName}
-              </CardTitle>
-              <p className="text-xs text-muted-foreground font-medium">
-                Your top-ranked competitor in {businessData.city}
-              </p>
-            </CardHeader>
-            <CardContent className="p-5 pt-2 space-y-3">
-
-              {/* Column headers */}
-              <div className="grid grid-cols-3 gap-2 pb-2 border-b border-border text-center">
-                <span className="text-xs font-bold text-muted-foreground truncate">You</span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider" />
-                <span className="text-xs font-bold text-primary truncate">{compName.split(' ').slice(0, 2).join(' ')}</span>
+        {/* ── COMPETITOR COMPARISON — always-visible side-by-side ── */}
+        <Card data-id="CC" className="border-2 border-border bg-card shadow-lg animate-fade-in-up animation-delay-300 overflow-hidden">
+          <CardHeader className="pb-3 px-5 pt-5">
+            <CardTitle className="text-sm font-black flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-amber-500" />
+              Head-to-Head Comparison
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-medium">
+              Your top-ranked competitor in {businessData.city}
+            </p>
+          </CardHeader>
+          <CardContent className="p-0">
+            {/* Column headers with names */}
+            <div className="grid grid-cols-2 border-b border-border">
+              <div className="px-4 py-3 bg-muted/30 border-r border-border text-center">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">You</p>
+                <p className="text-sm font-black text-foreground truncate">{you.name.split(' ').slice(0, 3).join(' ')}</p>
               </div>
+              <div className="px-4 py-3 bg-primary/5 text-center">
+                <p className="text-xs font-bold text-primary uppercase tracking-wide">Competitor</p>
+                <p className="text-sm font-black text-foreground truncate">{comp.name.split(' ').slice(0, 3).join(' ')}</p>
+              </div>
+            </div>
 
-              {/* Metric rows */}
-              {[
-                { label: 'Rating',  yours: you.rating,      theirs: comp.rating,      format: (v: number) => v.toFixed(1) },
-                { label: 'Reviews', yours: you.reviewCount,  theirs: comp.reviewCount,  format: (v: number) => v.toString() },
-                { label: 'Photos',  yours: you.photoCount,   theirs: comp.photoCount,   format: (v: number) => v.toString() },
-              ].map((metric) => {
-                const youWinning = metric.yours >= metric.theirs
-                return (
-                  <div key={metric.label} className="grid grid-cols-3 gap-2 items-center text-center">
-                    <span className={cn('text-lg font-black', youWinning ? 'text-green-600' : 'text-red-500')}>
+            {/* Metric rows */}
+            {[
+              { label: 'Rating',  icon: Star,          yours: you.rating,      theirs: comp.rating,      format: (v: number) => v.toFixed(1) },
+              { label: 'Reviews', icon: MessageSquare,  yours: you.reviewCount, theirs: comp.reviewCount, format: (v: number) => v.toLocaleString() },
+              { label: 'Photos',  icon: Camera,         yours: you.photoCount,  theirs: comp.photoCount,  format: (v: number) => v.toString() },
+            ].map((metric) => {
+              const youWinning = metric.yours >= metric.theirs
+              const Icon = metric.icon
+              return (
+                <div key={metric.label} className="grid grid-cols-2 border-b border-border last:border-b-0">
+                  <div className={cn('px-4 py-3 border-r border-border text-center', youWinning ? 'bg-green-50' : 'bg-red-50/50')}>
+                    <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                      <Icon className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{metric.label}</span>
+                    </div>
+                    <span className={cn('text-xl font-black', youWinning ? 'text-green-600' : 'text-red-500')}>
                       {metric.format(metric.yours)}
                     </span>
-                    <span className="text-xs font-bold text-muted-foreground">{metric.label}</span>
-                    <span className={cn('text-lg font-black', !youWinning ? 'text-green-600' : 'text-red-500')}>
+                  </div>
+                  <div className={cn('px-4 py-3 text-center', !youWinning ? 'bg-green-50' : 'bg-red-50/50')}>
+                    <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                      <Icon className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{metric.label}</span>
+                    </div>
+                    <span className={cn('text-xl font-black', !youWinning ? 'text-green-600' : 'text-red-500')}>
                       {metric.format(metric.theirs)}
                     </span>
                   </div>
-                )
-              })}
-            </CardContent>
-          </Card>
-        )}
+                </div>
+              )
+            })}
+
+            {/* Boolean metrics: Website + Phone */}
+            <div className="grid grid-cols-2 border-t border-border">
+              <div className="px-4 py-3 border-r border-border space-y-2">
+                <div className="flex items-center justify-center gap-1.5">
+                  {you.hasWebsite
+                    ? <><CheckCircle className="h-3.5 w-3.5 text-green-500" /><span className="text-xs font-bold text-green-600">Website</span></>
+                    : <><XCircle className="h-3.5 w-3.5 text-red-400" /><span className="text-xs font-bold text-red-500">No Website</span></>
+                  }
+                </div>
+                <div className="flex items-center justify-center gap-1.5">
+                  {you.hasPhone
+                    ? <><CheckCircle className="h-3.5 w-3.5 text-green-500" /><span className="text-xs font-bold text-green-600">Phone Listed</span></>
+                    : <><XCircle className="h-3.5 w-3.5 text-red-400" /><span className="text-xs font-bold text-red-500">No Phone</span></>
+                  }
+                </div>
+              </div>
+              <div className="px-4 py-3 space-y-2">
+                <div className="flex items-center justify-center gap-1.5">
+                  {comp.hasWebsite
+                    ? <><CheckCircle className="h-3.5 w-3.5 text-green-500" /><span className="text-xs font-bold text-green-600">Website</span></>
+                    : <><XCircle className="h-3.5 w-3.5 text-red-400" /><span className="text-xs font-bold text-red-500">No Website</span></>
+                  }
+                </div>
+                <div className="flex items-center justify-center gap-1.5">
+                  {comp.hasPhone
+                    ? <><CheckCircle className="h-3.5 w-3.5 text-green-500" /><span className="text-xs font-bold text-green-600">Phone Listed</span></>
+                    : <><XCircle className="h-3.5 w-3.5 text-red-400" /><span className="text-xs font-bold text-red-500">No Phone</span></>
+                  }
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
 
         {/* ── TOP KEYWORD OPPORTUNITY ── */}

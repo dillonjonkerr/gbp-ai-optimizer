@@ -1,5 +1,3 @@
-import OpenAI from "openai";
-
 // ── CTR curve for estimating traffic by SERP position ────────────────────
 const CTR_CURVE: Record<number, number> = {
   1: 0.28, 2: 0.15, 3: 0.11, 4: 0.08, 5: 0.06,
@@ -64,60 +62,124 @@ async function dfsPost<T>(endpoint: string, body: unknown[]): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// ── 1. AI-Generated Local Keywords ──────────────────────────────────────
+// ── 1. Real Keyword Research via DataForSEO ─────────────────────────────
 
-export async function generateLocalKeywords(
-  openai: OpenAI,
+type KeywordsForKeywordsResult = {
+  tasks: {
+    status_code: number;
+    status_message: string;
+    result: {
+      seed_keyword_data?: { keyword: string; keyword_info?: { search_volume: number } };
+      items?: {
+        keyword_data: {
+          keyword: string;
+          keyword_info: {
+            search_volume: number;
+            competition_level?: string;
+            cpc?: number;
+          };
+        };
+      }[];
+    }[];
+  }[];
+};
+
+function buildSeedKeywords(category: string, city: string): string[] {
+  const cat = category.toLowerCase();
+  const cityClean = city.split(",")[0]?.trim().toLowerCase() ?? city.toLowerCase();
+  return [
+    `${cat} ${cityClean}`,
+    `${cat} near me`,
+    `best ${cat} ${cityClean}`,
+    `${cat} services ${cityClean}`,
+    `${cat} company ${cityClean}`,
+  ];
+}
+
+export async function fetchRealKeywords(
   category: string,
   city: string,
   websiteUrl?: string,
 ): Promise<string[]> {
-  const websiteContext = websiteUrl
-    ? `The business website is ${websiteUrl}. Consider the types of services a ${category} typically offers.`
-    : "";
+  const loc = normalizeLocation(city);
+  const seeds = buildSeedKeywords(category, city);
+  const allKeywords = new Map<string, number>();
 
-  const cityClean = city.split(",")[0]?.trim().toLowerCase() ?? city.toLowerCase();
+  console.log("[dataforseo] Fetching real keywords for seeds:", seeds);
 
-  const prompt = `Generate exactly 20 high-intent local keywords that real customers search on Google when hiring a ${category} in ${cityClean}. ${websiteContext}
-
-Requirements:
-- Every keyword MUST include "${cityClean}" or "near me"
-- Focus on commercial/transactional intent (people ready to hire or get quotes)
-- Include variations: "${category.toLowerCase()} ${cityClean}", "best ${category.toLowerCase()} ${cityClean}", "${category.toLowerCase()} near me", specific service types
-- Include both broad terms and specific services
-- Do NOT include informational/DIY keywords ("how to paint", "painting ideas", "color palettes")
-- Do NOT include brand names, chains, or national companies
-- These must be keywords that a LOCAL service business would realistically want to rank for
-
-Return ONLY a JSON array of 20 strings. No explanation.`;
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.3,
-    messages: [
-      { role: "system", content: "You are a local SEO expert. Return only valid JSON arrays." },
-      { role: "user", content: prompt },
-    ],
-  });
-
-  const raw = completion.choices[0]?.message?.content ?? "[]";
-  const cleaned = raw.replace(/```json\s*/g, "").replace(/```/g, "").trim();
-
+  // Source 1: keywords_for_keywords — real Google Ads keyword ideas from seed terms
   try {
-    const keywords = JSON.parse(cleaned) as string[];
-    console.log("[dataforseo] AI generated keywords:", keywords.length);
-    return keywords.slice(0, 20);
-  } catch {
-    console.error("[dataforseo] Failed to parse AI keywords:", cleaned);
-    const cat = category.toLowerCase();
-    return [
-      `${cat} ${cityClean}`, `best ${cat} ${cityClean}`, `${cat} near me`,
-      `${cat} services ${cityClean}`, `${cat} company ${cityClean}`,
-      `affordable ${cat} ${cityClean}`, `${cat} contractors ${cityClean}`,
-      `residential ${cat} ${cityClean}`, `commercial ${cat} ${cityClean}`,
-      `${cat} cost ${cityClean}`,
-    ];
+    const data = await dfsPost<KeywordsForKeywordsResult>(
+      "keywords_data/google_ads/keywords_for_keywords/live",
+      [{
+        keywords: seeds,
+        language_code: "en",
+        location_name: loc.state ? `${loc.state},United States` : "United States",
+        sort_by: "search_volume",
+        limit: 50,
+      }],
+    );
+
+    const task = data.tasks?.[0];
+    if (task?.status_code === 20000) {
+      for (const item of task.result?.[0]?.items ?? []) {
+        const kw = item.keyword_data.keyword.toLowerCase();
+        const vol = item.keyword_data.keyword_info?.search_volume ?? 0;
+        if (vol > 0) allKeywords.set(kw, vol);
+      }
+    }
+    console.log("[dataforseo] keywords_for_keywords returned:", allKeywords.size, "keywords with volume");
+  } catch (err) {
+    console.warn("[dataforseo] keywords_for_keywords failed:", err);
   }
+
+  // Source 2: keywords_for_site — if business has a website, pull keywords Google associates with it
+  if (websiteUrl) {
+    try {
+      const data = await dfsPost<KeywordsForKeywordsResult>(
+        "keywords_data/google_ads/keywords_for_site/live",
+        [{
+          target: websiteUrl,
+          language_code: "en",
+          location_name: loc.state ? `${loc.state},United States` : "United States",
+          sort_by: "search_volume",
+          limit: 30,
+        }],
+      );
+
+      const task = data.tasks?.[0];
+      if (task?.status_code === 20000) {
+        let added = 0;
+        for (const item of task.result?.[0]?.items ?? []) {
+          const kw = item.keyword_data.keyword.toLowerCase();
+          const vol = item.keyword_data.keyword_info?.search_volume ?? 0;
+          if (vol > 0 && !allKeywords.has(kw)) {
+            allKeywords.set(kw, vol);
+            added++;
+          }
+        }
+        console.log("[dataforseo] keywords_for_site added:", added, "new keywords");
+      }
+    } catch (err) {
+      console.warn("[dataforseo] keywords_for_site failed:", err);
+    }
+  }
+
+  // Always include the seed keywords so we have a baseline
+  for (const seed of seeds) {
+    if (!allKeywords.has(seed.toLowerCase())) {
+      allKeywords.set(seed.toLowerCase(), 0);
+    }
+  }
+
+  // Sort by volume descending, return top 20
+  const sorted = Array.from(allKeywords.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 20)
+    .map(([kw]) => kw);
+
+  console.log("[dataforseo] Real keywords selected:", sorted.length);
+  return sorted;
 }
 
 // ── 2. Get Search Volumes ────────────────────────────────────────────────
@@ -396,17 +458,16 @@ export type MarketScanResult = {
 };
 
 export async function runMarketScan(
-  openai: OpenAI,
   businessName: string,
   city: string,
   category: string,
   websiteUrl?: string,
 ): Promise<MarketScanResult> {
-  // Step 1 — AI generates local keywords
-  const aiKeywords = await generateLocalKeywords(openai, category, city, websiteUrl);
+  // Step 1 — Fetch real keywords from DataForSEO (no AI generation)
+  const realKeywords = await fetchRealKeywords(category, city, websiteUrl);
 
-  // Step 2 — Get search volumes (real or estimated) — always returns seeds so SERP runs
-  const seeds = await getSearchVolumes(aiKeywords, city);
+  // Step 2 — Get search volumes for keywords (real or estimated)
+  const seeds = await getSearchVolumes(realKeywords, city);
   console.log("[market-scan] Keyword seeds for SERP:", seeds.length);
 
   // Step 3 — SERP for each keyword (all in parallel)
