@@ -186,7 +186,7 @@ export async function getSearchVolumes(
     .map((kw) => ({ keyword: kw, volume: volumeMap.get(kw) ?? 0 }))
     .filter((s) => s.volume > 0)
     .sort((a, b) => b.volume - a.volume)
-    .slice(0, 15);
+    .slice(0, 10);
 
   console.log(
     "[dataforseo] Final keywords with volume:",
@@ -397,32 +397,25 @@ export async function runMarketScan(
     };
   }
 
-  // Step 3 — SERP for each keyword (parallel batches of 5)
+  // Step 3 — SERP for each keyword (all in parallel)
   const bizDomain = websiteUrl
     ?.replace(/^https?:\/\//, "")
     .replace(/^www\./, "")
     .split("/")[0];
 
   type SerpEntry = { keyword: string; volume: number; myRank: number | null; organics: SerpOrganic[] };
-  const serpResults: SerpEntry[] = [];
-  const BATCH_SIZE = 5;
 
-  for (let i = 0; i < seeds.length; i += BATCH_SIZE) {
-    const batch = seeds.slice(i, i + BATCH_SIZE);
-    const results = await Promise.allSettled(
-      batch.map((s) => getKeywordSerp(s.keyword, city, businessName, bizDomain)),
-    );
+  const serpSettled = await Promise.allSettled(
+    seeds.map((s) => getKeywordSerp(s.keyword, city, businessName, bizDomain)),
+  );
 
-    for (let j = 0; j < batch.length; j++) {
-      const seed = batch[j]!;
-      const result = results[j]!;
-      if (result.status === "fulfilled") {
-        serpResults.push({ ...seed, ...result.value });
-      } else {
-        serpResults.push({ ...seed, myRank: null, organics: [] });
-      }
+  const serpResults: SerpEntry[] = seeds.map((seed, i) => {
+    const result = serpSettled[i]!;
+    if (result.status === "fulfilled") {
+      return { ...seed, ...result.value };
     }
-  }
+    return { ...seed, myRank: null, organics: [] };
+  });
 
   // Step 4 — Find ONE consistent primary competitor
   const primaryCompetitor = findPrimaryCompetitor(serpResults);
