@@ -36,7 +36,7 @@ type PlaceDetailsResult = {
   formatted_phone_number?: string;
   website?: string;
   types?: string[];
-  photos?: unknown[];
+  photos?: { photo_reference: string }[];
   reviews?: unknown[];
   editorial_summary?: { overview?: string };
 };
@@ -111,6 +111,12 @@ async function getPlaceDetails(placeId: string): Promise<PlaceDetailsResult> {
     throw new Error("Failed to fetch business details from Google.");
   }
   return data.result as PlaceDetailsResult;
+}
+
+function getPhotoUrl(details: PlaceDetailsResult): string | null {
+  const ref = details.photos?.[0]?.photo_reference;
+  if (!ref) return null;
+  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${ref}&key=${getGoogleKey()}`;
 }
 
 // ── Build structured profile ─────────────────────────────────────────────
@@ -249,6 +255,7 @@ export async function POST(request: NextRequest) {
               hasPhone: Boolean(compDetails.formatted_phone_number),
               category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
               address: compDetails.formatted_address ?? "",
+              photoUrl: getPhotoUrl(compDetails),
             };
             console.log("[gbp-audit] Competitor found via SERP:", competitorProfile.name);
             break;
@@ -289,6 +296,7 @@ export async function POST(request: NextRequest) {
               hasPhone: Boolean(compDetails.formatted_phone_number),
               category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
               address: compDetails.formatted_address ?? "",
+              photoUrl: getPhotoUrl(compDetails),
             };
             console.log("[gbp-audit] Competitor found via fallback:", competitorProfile.name);
             break;
@@ -311,6 +319,7 @@ export async function POST(request: NextRequest) {
         hasPhone: true,
         category: profile.category,
         address: city,
+        photoUrl: null,
       };
     }
 
@@ -323,6 +332,7 @@ export async function POST(request: NextRequest) {
       hasPhone: profile.hasPhone,
       category: profile.category,
       address: profile.address,
+      photoUrl: getPhotoUrl(details),
     };
 
     const marketScan = {

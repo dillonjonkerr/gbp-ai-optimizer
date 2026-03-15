@@ -39,6 +39,7 @@ export type BusinessProfile = {
   hasPhone: boolean;
   category: string;
   address: string;
+  photoUrl: string | null;
 };
 
 export type MarketScan = {

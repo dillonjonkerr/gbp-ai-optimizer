@@ -29,9 +29,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   ArrowRight, TrendingUp, Star, AlertTriangle,
-  Trophy, Zap, ImageIcon, DollarSign, Sparkles,
-  Globe, Phone, CheckCircle, XCircle, Camera, MessageSquare
+  Trophy, Zap, ImageIcon, Sparkles, PhoneOff,
+  Globe, Phone, CheckCircle, XCircle, Camera, MessageSquare, Building
 } from 'lucide-react'
+import Image from 'next/image'
 import type { AuditResult } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -77,15 +78,15 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
   const you  = marketScan.yourProfile
   const comp = marketScan.competitorProfile
 
-  // Estimated monthly revenue lost (missed searches × 8% conversion × $3,500 avg job)
-  const estimatedMonthlyValue = Math.round(missedSearches * 0.08 * 3500)
+  // Estimated missed calls: industry avg 3-5% of searches convert to a call
+  const estimatedMissedCalls = Math.max(1, Math.round(missedSearches * 0.042))
 
 
   /* ── 3b. RENDER ── */
 
   return (
     <div data-id="S3" className="flex min-h-[calc(100vh-56px)] flex-col px-4 py-6 sm:min-h-[calc(100vh-64px)] sm:px-6 sm:py-8">
-      <div data-id="RW" className="mx-auto w-full max-w-lg space-y-4">
+      <div data-id="RW" className="mx-auto w-full max-w-lg sm:max-w-2xl lg:max-w-3xl space-y-4">
 
 
         {/* ── SHOCK HEADLINE ── */}
@@ -107,18 +108,18 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
         </div>
 
 
-        {/* ── DOLLAR VALUE CARD — cost of inaction ── */}
+        {/* ── MISSED CALLS CARD — cost of inaction ── */}
         <Card data-id="DV" className="border-2 border-red-200 bg-red-50 shadow-md animate-fade-in-up animation-delay-100">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-500 text-white shadow-lg shadow-red-500/30 shrink-0">
-                <DollarSign className="h-6 w-6" />
+                <PhoneOff className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-xs font-bold text-red-700 uppercase tracking-wide">Estimated monthly revenue you&apos;re losing</p>
-                <p className="text-2xl font-black text-red-600">${estimatedMonthlyValue.toLocaleString()}/mo</p>
+                <p className="text-xs font-bold text-red-700 uppercase tracking-wide">Estimated calls you&apos;re missing</p>
+                <p className="text-2xl font-black text-red-600">~{estimatedMissedCalls.toLocaleString()} calls/mo</p>
                 <p className="text-[11px] text-red-600/80 font-medium">
-                  Based on {missedSearches.toLocaleString()} missed searches &times; 8% conversion &times; avg painting job
+                  Based on {missedSearches.toLocaleString()} missed searches &times; 4.2% avg call rate (BrightLocal 2024)
                 </p>
               </div>
             </div>
@@ -175,15 +176,33 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
             </p>
           </CardHeader>
           <CardContent className="p-0">
-            {/* Column headers with names */}
+            {/* Column headers with logos + names */}
             <div className="grid grid-cols-2 border-b border-border">
-              <div className="px-4 py-3 bg-muted/30 border-r border-border text-center">
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">You</p>
-                <p className="text-sm font-black text-foreground truncate">{you.name.split(' ').slice(0, 3).join(' ')}</p>
+              <div className="px-4 py-4 bg-muted/30 border-r border-border text-center flex flex-col items-center gap-2">
+                {you.photoUrl ? (
+                  <Image src={you.photoUrl} alt={you.name} width={56} height={56} className="h-14 w-14 rounded-full object-cover border-2 border-muted shadow-sm" />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted border-2 border-border">
+                    <Building className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">You</p>
+                  <p className="text-sm font-black text-foreground truncate max-w-[140px] sm:max-w-[200px]">{you.name.split(' ').slice(0, 3).join(' ')}</p>
+                </div>
               </div>
-              <div className="px-4 py-3 bg-primary/5 text-center">
-                <p className="text-xs font-bold text-primary uppercase tracking-wide">Competitor</p>
-                <p className="text-sm font-black text-foreground truncate">{comp.name.split(' ').slice(0, 3).join(' ')}</p>
+              <div className="px-4 py-4 bg-primary/5 text-center flex flex-col items-center gap-2">
+                {comp.photoUrl ? (
+                  <Image src={comp.photoUrl} alt={comp.name} width={56} height={56} className="h-14 w-14 rounded-full object-cover border-2 border-primary/30 shadow-sm" />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 border-2 border-primary/20">
+                    <Building className="h-6 w-6 text-primary" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-wide">Competitor</p>
+                  <p className="text-sm font-black text-foreground truncate max-w-[140px] sm:max-w-[200px]">{comp.name.split(' ').slice(0, 3).join(' ')}</p>
+                </div>
               </div>
             </div>
 
