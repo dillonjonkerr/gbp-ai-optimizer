@@ -1,0 +1,169 @@
+flowchart TD
+    classDef user fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#0D47A1
+    classDef api fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#E65100
+    classDef google fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#1B5E20
+    classDef openai fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#4A148C
+    classDef dfs fill:#FBE9E7,stroke:#D84315,stroke-width:2px,color:#BF360C
+    classDef data fill:#FFFDE7,stroke:#F9A825,stroke-width:2px,color:#F57F17
+    classDef error fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#B71C1C
+    classDef result fill:#E0F7FA,stroke:#00838F,stroke-width:2px,color:#006064
+
+    %% ═══════════════════════════════════════════════
+    %% STEP 1: USER INPUT
+    %% ═══════════════════════════════════════════════
+
+    START([User lands on homepage]):::user
+    START --> A1[Types 'SwiftHand Painting'\nin Business Name field]:::user
+
+    A1 --> A2[Google Places Autocomplete fires\nGET /api/places-autocomplete?q=SwiftHand+Painting]:::google
+    A2 --> A3[Dropdown shows:\n'SwiftHand Painting, Sandy, UT']:::google
+    A3 --> A4[User selects suggestion\nAuto-fills:\nCity = 'Sandy, UT'\nWebsite = swifthandpainting.com]:::user
+
+    A4 --> A5[User clicks\n'See Who's Outranking You']:::user
+
+    A5 --> A6[Frontend passes to Step 2:\nbusinessName = 'SwiftHand Painting'\ncity = 'Sandy, UT'\nwebsite = 'swifthandpainting.com']:::user
+
+    %% ═══════════════════════════════════════════════
+    %% STEP 2: SCAN ANIMATION + API CALL
+    %% ═══════════════════════════════════════════════
+
+    A6 --> B1([Step 2 loads — two things happen simultaneously]):::user
+
+    B1 --> B2[UI: Progress bar 0→90%\nticks every 100ms\ncaps at 90% until API returns]:::user
+    B1 --> B3[UI: 7 discovery items reveal\n1.2s → Profile located\n3.5s → Scanning competitors\n6.0s → Rating gap detected\n8.5s → Keyword opportunities\n11s → Visibility zones\n13.5s → Ranking gaps\n16s → Building fix plan]:::user
+
+    B1 --> API([POST /api/gbp-audit]):::api
+
+    %% ═══════════════════════════════════════════════
+    %% API PIPELINE
+    %% ═══════════════════════════════════════════════
+
+    API --> C1{Rate limit check\n3 req/hour per IP\nin-memory counter}:::api
+    C1 -->|BLOCKED| C1E[Return 429\nUser sees 'Scan Failed'\nwith Try Again button]:::error
+    C1 -->|OK| C2
+
+    subgraph PLACES["Google Places Lookup"]
+        C2[Text Search API\nquery = 'SwiftHand Painting Sandy, UT'\nkey = GOOGLE_PLACES_API_KEY]:::google
+        C2 -->|No results| C2E[Throw: 'No Google listing found\nfor SwiftHand Painting in Sandy, UT']:::error
+        C2 -->|Found| C3[Returns:\nplace_id = 'ChIJ...'\nname = 'SwiftHand Painting']:::google
+        C3 --> C4[Place Details API\nplace_id = ChIJ...\nfields = name, rating,\nuser_ratings_total,\nformatted_address,\nformatted_phone_number,\nwebsite, types, photos,\nreviews, editorial_summary]:::google
+        C4 --> C5[Returns for SwiftHand:\nname = 'SwiftHand Painting'\nrating = 4.8\nreviews = 284\nphotos = 10+\naddress = Sandy, UT\nphone = listed\nwebsite = swifthandpainting.com\ncategory = painter]:::data
+    end
+
+    C5 --> C6[Build Profile Snapshot:\nname: SwiftHand Painting\ncity: Sandy, UT\nrating: 4.8\nreviewCount: 284\nphotoCount: 10\nhasWebsite: true\nhasPhone: true\ndescriptionPresent: false\nphotoUrl: Google Places photo]:::data
+
+    C6 --> PARALLEL([Run TWO things in parallel\nPromise.all]):::api
+
+    %% ═══════════════════════════════════════════════
+    %% BRANCH A: OpenAI Analysis
+    %% ═══════════════════════════════════════════════
+
+    subgraph OPENAI["OpenAI Analysis ~2-3 seconds"]
+        PARALLEL --> D1[GPT-4o-mini\nSystem: 'You are a GBP optimization\nconsultant for the Painter industry'\nUser: profile JSON data]:::openai
+        D1 --> D2[Scoring rules:\nReviews < 10: deduct heavily\nNo website: -10\nNo phone: -5\nFew photos < 5: -15\nNo description: -10\nLow rating < 4.0: -10]:::openai
+        D2 --> D3[Returns JSON:\nscore: 70\ncompetitorScore: 75\naiSummary: 'SwiftHand Painting\nhas a strong presence\nwith 4.8 rating and 284\nreviews. However, no\nbusiness description...'\nmissedOpportunities: 5 items\nkeywordGaps: top 5\nrecommendations: 5-7 actions\nsuggestedPosts: 3\nsuggestedQA: 3]:::data
+    end
+
+    %% ═══════════════════════════════════════════════
+    %% BRANCH B: DataForSEO Market Scan
+    %% ═══════════════════════════════════════════════
+
+    subgraph MARKET["DataForSEO Market Scan ~8-15 seconds"]
+
+        PARALLEL --> E1[Build 5 seed keywords:\n1. painter sandy\n2. painter near me\n3. best painter sandy\n4. painter services sandy\n5. painter company sandy]:::dfs
+
+        subgraph KW_RESEARCH["Keyword Research — Real Google Ads Data"]
+            E1 --> E2[DataForSEO API:\nkeywords_for_keywords/live\nseeds = 5 keywords above\nlocation = Utah, United States\nlimit = 50 results]:::dfs
+            E2 --> E3[Returns 30-50 REAL keywords\nwith REAL search volumes\ne.g. 'house painter sandy' = 210/mo\n'painting company sandy utah' = 140/mo\n'interior painter near me' = 880/mo]:::data
+
+            E1 --> E4{Business has website?}:::dfs
+            E4 -->|Yes: swifthandpainting.com| E5[DataForSEO API:\nkeywords_for_site/live\ntarget = swifthandpainting.com\nlimit = 30 results]:::dfs
+            E5 --> E6[Returns keywords Google\nassociates with the site\nMerge unique ones in]:::data
+            E4 -->|No website| E7[Skip this step]:::dfs
+        end
+
+        E3 & E6 & E7 --> E8[All real keywords merged\nDeduplicated by keyword string]:::data
+
+        subgraph VOLUMES["Search Volume Verification"]
+            E8 --> F1[DataForSEO Search Volume API\nkeywords_data/google_ads/search_volume/live\nTry: Sandy,Utah,United States]:::dfs
+            F1 --> F2{City-level hits\n> 33% of keywords?}:::dfs
+            F2 -->|Yes| F6
+            F2 -->|No| F3[Fallback: Utah,United States]:::dfs
+            F3 --> F4{State-level hits\n> 33% of keywords?}:::dfs
+            F4 -->|Yes| F6
+            F4 -->|No| F5[Fallback: United States\nor estimate volumes\nnear me = 320\nbest = 210\ncost/price = 170\ncontractor = 120\nother = 90]:::dfs
+            F5 --> F6[Take TOP 10 keywords\nby volume, real or estimated\nSort descending]:::data
+        end
+
+        subgraph SERP["SERP Ranking Checks — ALL 10 IN PARALLEL"]
+            F6 --> G1[DataForSEO SERP API\nserp/google/organic/live/advanced\nALL 10 keywords fire simultaneously\nEach: depth=20, location=Sandy,Utah,US]:::dfs
+            G1 --> G2[For EACH keyword result:\n1. Find SwiftHand's rank\n   match by domain or business name\n2. Collect all competitor domains\n   with their ranks]:::dfs
+        end
+
+        G2 --> H1[Find PRIMARY COMPETITOR:\nScore every domain across all 10 SERPs\nscore += 21 minus rank for each appearance\nExclude directories:\nYelp, Angi, HomeAdvisor, Thumbtack,\nFacebook, BBB, Houzz, etc.\nHighest scoring domain = primary competitor]:::dfs
+
+        H1 --> H2[Example result:\nPrimary competitor domain: certapro.com\nPrimary competitor name: CertaPro Painters\nAppeared in 7 of 10 SERPs\nAverage rank: 3.2]:::data
+
+        H2 --> H3[Build GAP KEYWORDS:\nFor each of 10 keywords:\nIF competitor ranks AND\n  competitor outranks SwiftHand\n  OR SwiftHand doesn't rank\nTHEN it's a gap keyword]:::dfs
+
+        H3 --> H4[Calculate traffic opportunity:\nFor each gap keyword:\ncompetitor CTR at their rank\nminus your CTR at your rank\ntimes monthly volume\n\nCTR curve:\nPos 1 = 28%, 2 = 15%\n3 = 11%, 4 = 8%, 5 = 6%\n6 = 4%, 7 = 3%, 8 = 2%]:::dfs
+
+        H4 --> H5[Market Scan Result:\ngapKeywords: sorted by opportunity\ntotalKeywordsAnalyzed: 10\nprimaryCompetitor: CertaPro Painters\ntopCompetitors: top 5 domains\nestimatedMissedTraffic: sum of all gaps\ntotalLocalSearches: sum of all volumes]:::data
+    end
+
+    %% ═══════════════════════════════════════════════
+    %% COMPETITOR PROFILE LOOKUP
+    %% ═══════════════════════════════════════════════
+
+    D3 & H5 --> I1([Both parallel branches done\nNow: find competitor's real Google profile]):::api
+
+    subgraph COMP_LOOKUP["Competitor Profile — 3-Layer Guarantee"]
+        I1 --> I2[Attempt A: Search Google Places\nfor SERP-detected competitor\n'CertaPro Painters'\nTry 3 name variations:\n1. Full name\n2. Remove suffix after dash\n3. First 3 words only]:::google
+        I2 -->|Found & different from SwiftHand| I3[Get full details:\nrating, reviews, photos,\nwebsite, phone, address,\nGoogle Places photo URL]:::google
+        I2 -->|Not found| I4[Attempt B: Fallback searches\n1. 'best Painter in Sandy, UT'\n2. 'top rated Painter Sandy, UT'\n3. 'Painter Sandy, UT'\nPick first result that isn't SwiftHand]:::google
+        I4 -->|Found| I3
+        I4 -->|Still not found| I5[Attempt C: Last resort\nGenerate market-average competitor:\nname: 'Top Painter in Sandy, UT'\nrating: min 4.8, yours + 0.3\nreviews: max yours + 40, 50\nphotos: max yours + 10, 20\nwebsite: true, phone: true]:::data
+        I5 --> I3
+    end
+
+    %% ═══════════════════════════════════════════════
+    %% ASSEMBLE FINAL RESULT
+    %% ═══════════════════════════════════════════════
+
+    I3 --> J1[Assemble AuditResult JSON]:::api
+
+    subgraph RESULT["Final AuditResult Object"]
+        J1 --> J2[marketScan:\n  keywords: gap keywords array\n  totalKeywordsAnalyzed: 10\n  primaryCompetitorName: CertaPro Painters\n  topCompetitors: 5 names\n  estimatedMissedTraffic: number\n  totalLocalSearches: number\n  yourProfile: SwiftHand full profile + photo\n  competitorProfile: CertaPro full profile + photo]:::data
+
+        J1 --> J3[comparison:\n  businessName: SwiftHand Painting\n  rating: 4.8\n  score: 70\n  competitorScore: 75\n  reviewCount: 284\n  photoCount: 10\n  aiSummary: AI paragraph\n  missedOpportunities: array\n  keywordGaps: top 5 with you vs competitor ranks]:::data
+
+        J1 --> J4[recommendations: 5-7 actions\nsuggestedPosts: 3 GBP post ideas\nsuggestedQA: 3 Q&A entries]:::data
+    end
+
+    J2 & J3 & J4 --> K1[Return JSON response\nto frontend]:::api
+
+    %% ═══════════════════════════════════════════════
+    %% STEP 3: RESULTS PAGE RENDERS
+    %% ═══════════════════════════════════════════════
+
+    K1 --> L1[Progress bar jumps 90→100%\n500ms delay then auto-advance]:::user
+
+    L1 --> L2([STEP 3 — Results Page Renders]):::result
+
+    subgraph RESULTS["What the User Sees"]
+        L2 --> M1[SHOCK HEADLINE:\n'You're invisible for X of Y keywords\nhomeowners search to find painters'\nX = keywords where SwiftHand not in top 10\nY = total gap keywords analyzed]:::result
+
+        M1 --> M2[MISSED CALLS CARD:\n'~X calls/mo'\ncalculation: missedTraffic × 4.2% call rate\nBased on BrightLocal 2024 industry data]:::result
+
+        M2 --> M3[VISIBILITY SCORE GAUGE:\nCircular SVG showing 70/100\nColor: Green — score > 65\nLabel: Good\nBar fill animation]:::result
+
+        M3 --> M4[HEAD-TO-HEAD COMPARISON:\nTwo columns, always shown\n\nLeft: SwiftHand Painting\n  Google Places photo as logo\n  Rating: 4.8\n  Reviews: 284\n  Photos: 10\n  Website: ✓\n  Phone: ✓\n\nRight: CertaPro Painters\n  Google Places photo as logo\n  Rating: 4.7\n  Reviews: 312\n  Photos: 25\n  Website: ✓\n  Phone: ✓\n\nGreen = winning, Red = losing]:::result
+
+        M4 --> M5[TOP KEYWORD OPPORTUNITY:\nBiggest traffic gap keyword\ne.g. 'painter near me' — 880 searches/mo\n'you don't rank at all']:::result
+
+        M5 --> M6[AI ASSESSMENT:\n'SwiftHand Painting has a strong\npresence with 4.8 rating and 284\nreviews. However, the absence of\na business description limits...']:::result
+
+        M6 --> M7[CTA BUTTON:\n'Show Me How to Fix This'\nPulse glow animation\n\nUrgency line below:\n'Every day you wait, your competitor\ngets these leads instead']:::result
+    end
+
+    M7 --> END([User clicks → Step 4:\nDIY PDF $9.99 or\nFree AI Optimization]):::user
