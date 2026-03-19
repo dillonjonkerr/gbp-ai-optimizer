@@ -8,133 +8,112 @@ flowchart TD
     classDef err fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#B71C1C
     classDef teal fill:#E0F7FA,stroke:#00838F,stroke-width:2px,color:#006064
 
-    %% ════════════════════════════════════
     %% WHAT THE USER DOES
-    %% ════════════════════════════════════
 
-    U1([U1 — User opens the page]):::blue
-    U2[U2 — Types their business name]:::blue
-    U3[U3 — Google suggests matching businesses]:::green
-    U4[U4 — Picks their business from the list\nCity and website fill in automatically]:::blue
-    U5[U5 — Hits the scan button]:::blue
-    U6[U6 — Business name + city + website\nsent to the scan engine]:::blue
+    U1([U1 - User opens the page]):::blue
+    U2[U2 - Types their business name]:::blue
+    U3[U3 - Google suggests matching businesses]:::green
+    U4[U4 - Picks their business from the list\nCity and website fill in automatically]:::blue
+    U5[U5 - Hits the scan button]:::blue
+    U6[U6 - Business name + city + website\nsent to a scan agent with SEO data]:::blue
 
     U1 --> U2 --> U3 --> U4 --> U5 --> U6
 
-    %% ════════════════════════════════════
     %% LOADING SCREEN
-    %% ════════════════════════════════════
 
-    U6 --> S1([S1 — Loading screen appears]):::blue
-    S1 --> S2[S2 — Progress bar fills up\nstops at 90% until scan finishes]:::blue
-    S1 --> S3[S3 — Discovery messages appear one by one\n'Profile found' → 'Competitors found'\n→ 'Gaps detected' → 'Building report']:::blue
+    U6 --> S1([S1 - Loading screen appears]):::blue
+    S1 --> S2[S2 - Progress bar fills up\nstops at 90 pct until scan finishes]:::blue
+    S1 --> S3[S3 - Discovery messages appear one by one\nProfile found, Competitors found,\nGaps detected, Building report\nMake these discovery messages more intense: \nYou're missing 300 calls from x keyword, x company outranking you by 10 positions for x keyword, etc.]:::blue
     S1 --> A1
 
-    %% ════════════════════════════════════
     %% SAFETY CHECK
-    %% ════════════════════════════════════
 
-    A1[A1 — Scan starts on the server]:::orange
-    A1 --> A2{A2 — Too many scans from this user?\n3 per hour max}:::orange
-    A2 -->|Yes, blocked| E1[E1 — Shows error:\n'Try again later']:::err
-    A2 -->|No, continue| G1
+    A1[A1 - Scan starts on the server]:::orange
+    A1 --> A2{A2 - Too many scans from this user?\n3 per hour max}:::orange
+    A2 -->|Yes blocked| E1[E1 - Shows error:\nTry again later]:::err
+    A2 -->|No continue| G1
 
-    %% ════════════════════════════════════
     %% FIND THE BUSINESS ON GOOGLE
-    %% ════════════════════════════════════
 
-    G1[G1 — Search Google for the business\n'SwiftHand Painting Sandy UT']:::green
-    G1 -->|Not found on Google| E2[E2 — Shows error:\n'Business not found']:::err
-    G1 -->|Found| G2[G2 — Get the Google listing ID]:::green
-    G2 --> G3[G3 — Pull full business details:\nRating, review count, photos,\naddress, phone, website, category]:::green
-    G3 --> G4[G4 — Save as profile:\nSwiftHand Painting\n4.8 stars · 284 reviews · 10 photos\nHas website · Has phone · No description\n+ grab their Google profile photo]:::yellow
+    G1[G1 - Search Google for the business\nSwiftHand Painting Sandy UT]:::green
+    G1 -->|Not found on Google| E2[E2 - Shows error:\nBusiness not found]:::err
+    G1 -->|Found| G2[G2 - Get the Google listing ID]:::green
+    G2 --> G3[G3 - Pull full business details:\nRating, review count, photos,\naddress, phone, website, category]:::green
+    G3 --> G4[G4 - Save as profile:\nSwiftHand Painting\n4.8 stars / 284 reviews / 10 photos\nHas website / Has phone / No description\nplus grab their Google profile photo]:::yellow
 
-    %% ════════════════════════════════════
     %% SPLIT INTO TWO PARALLEL JOBS
-    %% ════════════════════════════════════
 
-    G4 --> P1([P1 — Two jobs run at the same time]):::orange
+    G4 --> P1([P1 - Two jobs run at the same time]):::orange
 
-    %% ════════════════════════════════════
     %% JOB 1: AI GRADES THE PROFILE
-    %% ════════════════════════════════════
 
-    P1 --> O1[O1 — AI reads the profile data]:::purple
-    O1 --> O2[O2 — AI scores it 0-100\nDeducts points for:\nFew reviews, no website,\nno phone, few photos,\nno description, low rating]:::purple
-    O2 --> O3[O3 — AI writes:\n• Visibility score: 70\n• Summary paragraph\n• 5 missed opportunities\n• 5-7 fix recommendations\n• 3 post ideas\n• 3 Q&A suggestions]:::yellow
+    P1 --> O1[O1 - AI reads the profile data]:::purple
+    O1 --> O2[O2 - AI scores it 0-100\nDeducts points for:\nFew reviews, no website,\nno phone, few photos,\nno description, low rating]:::purple
+    O2 --> O3[O3 - AI writes:\n- Visibility score: 70\n- Summary paragraph\n- 5 missed opportunities\n- 5 to 7 fix recommendations\n- 3 post ideas\n- 3 QandA suggestions]:::yellow
 
-    %% ════════════════════════════════════
     %% JOB 2: FIND WHAT PEOPLE SEARCH FOR
-    %% ════════════════════════════════════
 
-    P1 --> K1[K1 — Create 5 basic search terms\n'painter sandy' · 'painter near me'\n'best painter sandy' etc.]:::red
-    K1 --> K2[K2 — Ask DataForSEO:\n'What do people actually search\nthat's related to these terms?'\nReturns 30-50 real keywords\nwith real monthly search counts]:::red
-    K2 --> K3{K3 — Does the business have a website?}:::red
-    K3 -->|Yes| K4[K4 — Also ask DataForSEO:\n'What keywords does Google\nconnect to this website?'\nAdds more real keywords]:::red
-    K3 -->|No| K5[K5 — Skip, just use\nthe keywords we have]:::red
-    K4 --> K6[K6 — Combine all keywords\nremove duplicates]:::yellow
+    P1 --> K1[K1 - Create 5 basic search terms\npainter sandy / painter near me\nbest painter sandy etc.\nWe must not just look for local keywords like painters in area, we must find the top commercial intent painting keywords for all the areas they serve based on their website service areas and GBP service areas.]:::red
+    K1 --> K2[K2 - Ask DataForSEO:\nWhat do people actually search\nrelated to these terms?\nReturns 30-50 real keywords\nwith real monthly search counts\nAsk Data SEO to give us the top 3 volume keywords out of the 20 we gave, and find 5 more top keywords for the entire area they search and their top competitors for each of those keywords and where their company ranks for them.]:::red
+    K2 --> K3{K3 - Does the business have a website?}:::red
+    K3 -->|Yes| K4[K4 - Also ask DataForSEO:\nWhat keywords does Google\nconnect to this website?\nAdds more real keywords]:::red
+    K3 -->|No| K5[K5 - Skip, just use\nthe keywords we have]:::red
+    K4 --> K6[K6 - Combine all keywords\nremove duplicates]:::yellow
     K5 --> K6
 
-    %% ════════════════════════════════════
     %% CHECK HOW MANY PEOPLE SEARCH EACH
-    %% ════════════════════════════════════
 
-    K6 --> V1[V1 — Get monthly search counts\nfor each keyword\nTry city-level data first]:::red
-    V1 --> V2{V2 — Got data for\nmost keywords?}:::red
+    K6 --> V1[V1 - Get monthly search counts\nfor each keyword\nTry city-level data first]:::red
+    V1 --> V2{V2 - Got data for\nmost keywords?}:::red
     V2 -->|Yes| V5
-    V2 -->|No| V3[V3 — Try state-level data instead]:::red
-    V3 --> V4{V4 — Got data now?}:::red
+    V2 -->|No| V3[V3 - Try state-level data instead]:::red
+    V3 --> V4{V4 - Got data now?}:::red
     V4 -->|Yes| V5
-    V4 -->|No| V6[V6 — Try national data\nor use estimates]:::red
-    V6 --> V5[V5 — Pick the top 10 keywords\nwith the highest search volume]:::yellow
+    V4 -->|No| V6[V6 - Try national data\nor use estimates]:::red
+    V6 --> V5[V5 - Pick the top 10 keywords\nwith the highest search volume\nTop 8 - 3 local with minimum volume of 100 and 5 more statewide or for the entire area they search higher volume like near me.]:::yellow
 
-    %% ════════════════════════════════════
     %% CHECK WHO RANKS FOR EACH KEYWORD
-    %% ════════════════════════════════════
 
-    V5 --> R1[R1 — Google each of the 10 keywords\nCheck the top 20 results for each\nAll 10 searches happen at the same time]:::red
-    R1 --> R2[R2 — For each keyword:\n• Where does SwiftHand rank?\n• Who else shows up?]:::red
-    R2 --> R3[R3 — Tally up all the businesses\nthat keep appearing in results\nIgnore Yelp, Angi, directories etc.]:::red
-    R3 --> R4[R4 — The business that ranks\nhighest most often =\nyour #1 competitor]:::yellow
-    R4 --> R5[R5 — Find keywords where\nthat competitor beats you\nor you don't show up at all]:::red
-    R5 --> R6[R6 — Estimate how many clicks\nyou're losing on each keyword\nbased on ranking position]:::red
-    R6 --> R7[R7 — Total it all up:\n• Gap keywords list\n• Primary competitor name\n• Top 5 competitors\n• Total missed clicks]:::yellow
+    V5 --> R1[R1 - Google each of the 10 keywords\nCheck the top 20 results for each\nAll 10 searches happen at the same time]:::red
+    R1 --> R2[R2 - For each keyword:\n- Where does SwiftHand rank?\n- Who else shows up?]:::red
+    R2 --> R3[R3 - Tally up all the businesses\nthat keep appearing in results\nIgnore Yelp, Angi, directories etc.]:::red
+    R3 --> R4[R4 - The business that ranks\nhighest most often =\nyour no.1 competitor]:::yellow
+    R4 --> R5[R5 - Find keywords where\nthat competitor beats you\nor you do not show up at all]:::red
+    R5 --> R6[R6 - Estimate how many clicks\nyou are losing on each keyword\nbased on ranking position]:::red
+    R6 --> R7[R7 - Total it all up:\n- Gap keywords list\n- Primary competitor name\n- Top 5 competitors\n- Total missed clicks\nYou're missing out on x amount of calls.]:::yellow
 
-    %% ════════════════════════════════════
-    %% GET THE COMPETITOR'S REAL PROFILE
-    %% ════════════════════════════════════
+    %% GET THE COMPETITORS REAL PROFILE - 15 MILE RADIUS
 
-    O3 & R7 --> C1([C1 — Now find the competitor on Google]):::orange
+    O3 --> C1([C1 - Now find the competitor on Google\nSearching 15-mile radius from your location]):::orange
+    R7 --> C1
 
-    C1 --> C2[C2 — Try A: Search Google for\nthe competitor by name\ne.g. 'CertaPro Painters Sandy']:::green
+    C1 --> C2[C2 - Try A: Search Google for\nthe SERP competitor by name\nwithin 15 miles of your business\nnot just same street or city]:::green
     C2 -->|Found| C5
-    C2 -->|Not found| C3[C3 — Try B: Search Google for\n'best painter in Sandy UT'\npick the top result that isn't you]:::green
+    C2 -->|Not found| C3[C3 - Try B: Search best painter\nwithin 15-mile radius\npick the top result that is not you]:::green
     C3 -->|Found| C5
-    C3 -->|Not found| C4[C4 — Try C: Make a placeholder\nslightly better stats than you\nso there's always a comparison]:::yellow
-    C4 --> C5[C5 — Competitor profile ready:\nName, rating, reviews, photos\nwebsite, phone, Google photo]:::yellow
+    C3 -->|Not found| C4[C4 - Try C: Make a placeholder\nslightly better stats than you\nso there is always a comparison]:::yellow
+    C4 --> C5[C5 - Competitor profile ready:\nName, rating, reviews, photos\nwebsite, phone, Google photo\nfrom wider 15mi service area]:::yellow
 
-    %% ════════════════════════════════════
     %% PACKAGE EVERYTHING UP
-    %% ════════════════════════════════════
 
-    C5 --> F1[F1 — Bundle everything together]:::orange
-    F1 --> F2[F2 — Your profile vs competitor profile\nAll gap keywords + missed clicks]:::yellow
-    F1 --> F3[F3 — AI score + summary\n+ opportunities + recommendations]:::yellow
-    F1 --> F4[F4 — Post ideas + Q&A suggestions]:::yellow
-    F2 & F3 & F4 --> F5[F5 — Send it all to the browser]:::orange
+    C5 --> F1[F1 - Bundle everything together]:::orange
+    F1 --> F2[F2 - Your profile vs competitor profile\nAll gap keywords + missed clicks]:::yellow
+    F1 --> F3[F3 - AI score + summary\n+ opportunities + recommendations]:::yellow
+    F1 --> F4[F4 - Post ideas + QandA suggestions]:::yellow
+    F2 --> F5[F5 - Send it all to the browser]:::orange
+    F3 --> F5
+    F4 --> F5
 
-    %% ════════════════════════════════════
     %% RESULTS PAGE
-    %% ════════════════════════════════════
 
-    F5 --> T1[T1 — Progress bar hits 100%\nPage flips to results]:::blue
+    F5 --> T1[T1 - Progress bar hits 100 pct\nPage flips to results]:::blue
 
-    T1 --> D1([D1 — RESULTS PAGE]):::teal
-    D1 --> D2[D2 — Big headline:\n'You're invisible for X of Y keywords\nhomeowners search to find painters']:::teal
-    D2 --> D3[D3 — Missed calls card:\n'~X calls per month going\nto your competitors instead']:::teal
-    D3 --> D4[D4 — Visibility score:\nCircle showing 70/100\nRed = bad · Amber = okay · Green = good]:::teal
-    D4 --> D5[D5 — You vs Competitor side by side:\nBoth Google photos as logos\nRating · Reviews · Photos\nWebsite ✓/✗ · Phone ✓/✗\nGreen = you're winning\nRed = you're losing]:::teal
-    D5 --> D6[D6 — Biggest keyword you're missing:\nThe #1 opportunity with search volume\nand your current rank or 'not ranked']:::teal
-    D6 --> D7[D7 — AI summary:\nPlain English paragraph about\nwhat's good and what's hurting you]:::teal
-    D7 --> D8[D8 — Big button:\n'Show Me How to Fix This']:::teal
-    D8 --> D9([D9 — Choice page:\nDIY Plan $9.99 or Free AI Optimization]):::blue
+    T1 --> D1([D1 - RESULTS PAGE]):::teal
+    D1 --> D2[D2 - Big headline:\nYou are invisible for X of Y keywords\nhomeowners search to find painters]:::teal
+    D2 --> D3[D3 - Missed calls card:\nAbout X calls per month going\nto your competitors instead]:::teal
+    D3 --> D4[D4 - Visibility score:\nCircle showing 70 out of 100\nRed = bad / Amber = okay / Green = good]:::teal
+    D4 --> D5[D5 - You vs Competitor side by side:\nBoth Google photos as logos\nRating / Reviews / Photos\nWebsite Y or N / Phone Y or N\nGreen = you are winning\nRed = you are losing]:::teal
+    D5 --> D6[D6 - Biggest keyword you are missing:\nThe no.1 opportunity with search volume\nand your current rank or not ranked]:::teal
+    D6 --> D7[D7 - AI summary:\nPlain English paragraph about\nwhat is good and what is hurting you]:::teal
+    D7 --> D8[D8 - Big button:\nShow Me How to Fix This]:::teal
+    D8 --> D9([D9 - Choice page:\nDIY Plan or Free AI Optimization]):::blue

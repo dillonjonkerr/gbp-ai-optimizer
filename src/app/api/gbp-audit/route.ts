@@ -7,6 +7,7 @@ import type {
   AuditResult,
 } from "@/lib/types";
 import { runMarketScan } from "@/lib/dataforseo";
+import { scrapeWebsite } from "@/lib/website-scraper";
 import { rateLimit } from "@/lib/rateLimit";
 import { apiErrorResponse } from "@/lib/apiError";
 
@@ -16,6 +17,8 @@ type Payload = {
   businessName: string;
   city: string;
   industry: string;
+  website?: string;
+  competitorMode?: 'local' | 'state';
 };
 
 // ── Google Places types ──────────────────────────────────────────────────
@@ -26,6 +29,7 @@ type PlaceTextSearchResult = {
   rating?: number;
   user_ratings_total?: number;
   formatted_address?: string;
+  geometry?: { location: { lat: number; lng: number } };
 };
 
 type PlaceDetailsResult = {
@@ -119,9 +123,70 @@ function getPhotoUrl(details: PlaceDetailsResult): string | null {
   return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photo_reference=${ref}&key=${getGoogleKey()}`;
 }
 
+const COMPETITOR_RADIUS_METERS = 24140; // 15 miles
+const MIN_COMPETITOR_DISTANCE_METERS = 1600; // ~1 mile — skip competitors closer than this
+
+function haversineDistance(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6371000;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * sinLng * sinLng;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+function extractStreet(address: string): string {
+  const parts = address.split(",");
+  return (parts[0] ?? "").trim().toLowerCase().replace(/^\d+\s*/, "");
+}
+
+async function searchCompetitorWide(
+  query: string,
+  center: { lat: number; lng: number },
+): Promise<PlaceTextSearchResult[]> {
+  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&location=${center.lat},${center.lng}&radius=${COMPETITOR_RADIUS_METERS}&key=${getGoogleKey()}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.status !== "OK" && data.status !== "ZERO_RESULTS") {
+    console.warn("[gbp-audit] Wide competitor search status:", data.status, data.error_message ?? "");
+  }
+  return (data.results ?? []) as PlaceTextSearchResult[];
+}
+
+function isTooClose(
+  candidate: PlaceTextSearchResult,
+  myName: string,
+  myAddress: string,
+  myCenter: { lat: number; lng: number },
+): boolean {
+  if (candidate.name.toLowerCase() === myName.toLowerCase()) return true;
+
+  const candidateLoc = candidate.geometry?.location;
+  if (candidateLoc) {
+    const dist = haversineDistance(myCenter, candidateLoc);
+    if (dist < MIN_COMPETITOR_DISTANCE_METERS) {
+      console.log(`[gbp-audit] Skipping ${candidate.name} — only ${Math.round(dist)}m away`);
+      return true;
+    }
+  }
+
+  const myStreet = extractStreet(myAddress);
+  const theirStreet = extractStreet(candidate.formatted_address ?? "");
+  if (myStreet && theirStreet && myStreet === theirStreet) {
+    console.log(`[gbp-audit] Skipping ${candidate.name} — same street (${myStreet})`);
+    return true;
+  }
+
+  return false;
+}
+
 // ── Build structured profile ─────────────────────────────────────────────
 
-function buildProfileSnapshot(details: PlaceDetailsResult, city: string) {
+function buildProfileSnapshot(details: PlaceDetailsResult, city: string, scrapedData?: Record<string, unknown>) {
   return {
     name: details.name ?? "Unknown",
     city,
@@ -133,6 +198,12 @@ function buildProfileSnapshot(details: PlaceDetailsResult, city: string) {
     hasPhone: Boolean(details.formatted_phone_number),
     descriptionPresent: Boolean(details.editorial_summary?.overview),
     address: details.formatted_address ?? "",
+    websiteKeywords: scrapedData?.titleKeywords || [],
+    headingKeywords: scrapedData?.headingKeywords || [],
+    services: scrapedData?.services || [],
+    serviceAreas: scrapedData?.serviceAreas || [],
+    logoUrl: scrapedData?.logoUrl || null,
+    rankings: scrapedData?.rankings || {},
   };
 }
 
@@ -161,6 +232,7 @@ Scoring guidelines:
 - No description: -10
 - Low rating (< 4.0): -10
 
+Consider the scraped website data including keywords, services, and logo for additional optimization opportunities.
 Be specific and actionable. Reference the actual data.`;
 
   const userPrompt = `Business profile data:\n${JSON.stringify(profile, null, 2)}`;
@@ -205,7 +277,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[gbp-audit] Starting audit for:", { businessName, city, industry });
+    console.log("[gbp-audit] Starting audit for:", { businessName, city, industry, userWebsite: body.website });
 
     // Step 1 — Search Google Places
     const place = await searchPlace(businessName, city);
@@ -214,76 +286,105 @@ export async function POST(request: NextRequest) {
     // Step 2 — Get detailed info
     const details = await getPlaceDetails(place.place_id);
 
+    // Step 2b — Scrape website if available
+    const websiteUrl = body.website || details.website || undefined;
+    let scrapedData: Record<string, unknown> | undefined;
+    if (websiteUrl) {
+      try {
+        console.log("[gbp-audit] Scraping website:", websiteUrl);
+        scrapedData = await scrapeWebsite(websiteUrl) as Record<string, unknown>;
+        console.log("[gbp-audit] Scraped data:", {
+          serviceAreas: (scrapedData?.serviceAreas as unknown[])?.length ?? 0,
+          services: (scrapedData?.services as unknown[])?.length ?? 0,
+          titleKeywords: (scrapedData?.titleKeywords as unknown[])?.length ?? 0,
+          headingKeywords: (scrapedData?.headingKeywords as unknown[])?.length ?? 0,
+        });
+      } catch (err) {
+        console.warn("[gbp-audit] Website scraping failed:", err);
+      }
+    }
+
     // Step 3 — Build structured profile
-    const profile = buildProfileSnapshot(details, city);
+    const profile = buildProfileSnapshot(details, city, scrapedData);
     console.log("[gbp-audit] Profile snapshot:", profile);
 
-    // Step 4 — AI analysis + market scan in parallel
-    const websiteUrl = details.website ?? undefined;
-
+    const serviceAreas = (scrapedData?.serviceAreas as string[]) ?? [];
     const [analysis, scanResult] = await Promise.all([
       runAIAnalysis(profile, industry),
-      runMarketScan(businessName, city, industry, websiteUrl),
+      runMarketScan(businessName, city, industry, serviceAreas, websiteUrl),
     ]);
     console.log("[gbp-audit] AI score:", analysis.score);
     console.log("[gbp-audit] Market scan complete:", scanResult.gapKeywords.length, "gap keywords of", scanResult.totalKeywordsAnalyzed);
 
-    // Step 5 — ALWAYS find a competitor (3-layer fallback)
+    // Step 5 — ALWAYS find a competitor (3-layer fallback, 15-mile radius)
     let competitorProfile = null;
 
-    // Attempt A: SERP-detected primary competitor
-    const primaryCompetitorName = scanResult.primaryCompetitor?.name;
-    if (primaryCompetitorName && primaryCompetitorName !== "Unknown") {
-      const searchVariations = [
-        primaryCompetitorName,
-        primaryCompetitorName.replace(/\s*[-|–—].*$/, ""),
-        primaryCompetitorName.split(" ").slice(0, 3).join(" "),
-      ];
+    // Get center coordinates from the user's business for wide-radius searches
+    const bizCenter = place.geometry?.location ?? null;
+    const cityState = city.includes(",") ? city : `${city}`;
 
-      for (const variation of searchVariations) {
-        try {
-          console.log("[gbp-audit] Competitor lookup (SERP-based):", variation);
-          const compPlace = await searchPlace(variation, city);
-          const compDetails = await getPlaceDetails(compPlace.place_id);
-          if (compPlace.name.toLowerCase() !== profile.name.toLowerCase()) {
-            competitorProfile = {
-              name: compDetails.name ?? variation,
-              rating: compDetails.rating ?? 0,
-              reviewCount: compDetails.user_ratings_total ?? 0,
-              photoCount: compDetails.photos?.length ?? 0,
-              hasWebsite: Boolean(compDetails.website),
-              hasPhone: Boolean(compDetails.formatted_phone_number),
-              category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
-              address: compDetails.formatted_address ?? "",
-              photoUrl: getPhotoUrl(compDetails),
-            };
-            console.log("[gbp-audit] Competitor found via SERP:", competitorProfile.name);
-            break;
+    // Attempt A: Try ALL SERP-detected competitors (not just #1) — skip ones too close
+    const serpAllCompetitors = [
+      ...scanResult.competitorProfiles.local,
+      ...scanResult.competitorProfiles.statewide,
+    ];
+
+    if (bizCenter) {
+      for (const serpComp of serpAllCompetitors) {
+        if (competitorProfile) break;
+        if (!serpComp.name || serpComp.name === "Unknown") continue;
+
+        const searchVariations = [
+          serpComp.name,
+          serpComp.name.replace(/\s*[-|–—].*$/, ""),
+          serpComp.name.split(" ").slice(0, 3).join(" "),
+        ];
+
+        for (const variation of searchVariations) {
+          try {
+            console.log("[gbp-audit] Competitor lookup (SERP, 15mi, >1mi away):", variation);
+            const candidates = await searchCompetitorWide(variation, bizCenter);
+            const match = candidates.find(
+              (c) => !isTooClose(c, profile.name, profile.address, bizCenter)
+            );
+            if (match) {
+              const compDetails = await getPlaceDetails(match.place_id);
+              competitorProfile = {
+                name: compDetails.name ?? variation,
+                rating: compDetails.rating ?? 0,
+                reviewCount: compDetails.user_ratings_total ?? 0,
+                photoCount: compDetails.photos?.length ?? 0,
+                hasWebsite: Boolean(compDetails.website),
+                hasPhone: Boolean(compDetails.formatted_phone_number),
+                category: compDetails.types?.[0]?.replace(/_/g, " ") ?? "unknown",
+                address: compDetails.formatted_address ?? "",
+                photoUrl: getPhotoUrl(compDetails),
+              };
+              console.log("[gbp-audit] Competitor found (15mi, different area):", competitorProfile.name, "-", competitorProfile.address);
+              break;
+            }
+          } catch (err) {
+            console.warn("[gbp-audit] SERP competitor search failed:", variation, err);
           }
-        } catch (err) {
-          console.warn("[gbp-audit] SERP competitor search failed:", variation, err);
         }
       }
     }
 
-    // Attempt B: Generic search for top business in the category + city
-    if (!competitorProfile) {
+    // Attempt B: Wide-radius category search — skip anything on same street or <1mi
+    if (!competitorProfile && bizCenter) {
       const fallbackQueries = [
-        `best ${industry} in ${city}`,
-        `top rated ${industry} ${city}`,
-        `${industry} ${city}`,
+        `best ${industry}`,
+        `top rated ${industry}`,
+        industry,
       ];
 
       for (const query of fallbackQueries) {
+        if (competitorProfile) break;
         try {
-          console.log("[gbp-audit] Competitor fallback search:", query);
-          const fbRes = await fetch(
-            `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${getGoogleKey()}`
-          );
-          const fbData = await fbRes.json();
-          const candidates = (fbData.results ?? []) as PlaceTextSearchResult[];
+          console.log("[gbp-audit] Competitor fallback (15mi, >1mi away):", query);
+          const candidates = await searchCompetitorWide(query, bizCenter);
           const match = candidates.find(
-            (c) => c.name.toLowerCase() !== profile.name.toLowerCase()
+            (c) => !isTooClose(c, profile.name, profile.address, bizCenter)
           );
           if (match) {
             const compDetails = await getPlaceDetails(match.place_id);
@@ -298,7 +399,7 @@ export async function POST(request: NextRequest) {
               address: compDetails.formatted_address ?? "",
               photoUrl: getPhotoUrl(compDetails),
             };
-            console.log("[gbp-audit] Competitor found via fallback:", competitorProfile.name);
+            console.log("[gbp-audit] Competitor found via fallback (different area):", competitorProfile.name, "-", competitorProfile.address);
             break;
           }
         } catch (err) {
@@ -335,11 +436,17 @@ export async function POST(request: NextRequest) {
       photoUrl: getPhotoUrl(details),
     };
 
+    const allCompetitors = [
+      ...scanResult.competitorProfiles.local,
+      ...scanResult.competitorProfiles.statewide,
+    ];
+    const primaryCompetitorName = allCompetitors[0]?.name ?? "Top Competitor";
+
     const marketScan = {
       keywords: scanResult.gapKeywords,
       totalKeywordsAnalyzed: scanResult.totalKeywordsAnalyzed,
-      primaryCompetitorName: scanResult.primaryCompetitor?.name ?? "Top Competitor",
-      topCompetitors: scanResult.topCompetitors.map((c) => c.name),
+      primaryCompetitorName,
+      topCompetitors: allCompetitors.map((c) => c.name),
       estimatedMissedTraffic: scanResult.estimatedMissedTraffic,
       radiusMiles: 15,
       totalLocalSearches: scanResult.totalLocalSearches,

@@ -121,6 +121,9 @@ export function StepResults({ businessData, auditResult, onNext }: StepResultsPr
                 <p className="text-[11px] text-red-600/80 font-medium">
                   Based on {missedSearches.toLocaleString()} missed searches &times; 4.2% avg call rate (BrightLocal 2024)
                 </p>
+                <p className="text-xs text-red-700 font-medium mt-1">
+                  You&apos;re missing out on {estimatedMissedCalls.toLocaleString()} amount of calls
+                </p>
               </div>
             </div>
           </CardContent>
